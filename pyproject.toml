@@ -10,4 +10,8 @@ dependencies = [
     "scikit-learn",
     "scipy",
     "matplotlib",
+    "manifpy",
 ]
+
+[tool.uv.sources]
+manifpy = { path = "../manif" }
