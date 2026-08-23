@@ -263,6 +263,20 @@ wheels = [
 ]
 
 [[package]]
+name = "manifpy"
+version = "0.1.dev808+dirty"
+source = { directory = "../manif" }
+
+[package.metadata]
+requires-dist = [
+    { name = "numpy", marker = "extra == 'all'" },
+    { name = "numpy", marker = "extra == 'testing'" },
+    { name = "pytest", marker = "extra == 'all'" },
+    { name = "pytest", marker = "extra == 'testing'" },
+]
+provides-extras = ["testing", "all"]
+
+[[package]]
 name = "matplotlib"
 version = "3.11.1"
 source = { registry = "https://pypi.org/simple" }
@@ -622,6 +636,7 @@ name = "python-codebase"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "manifpy" },
     { name = "matplotlib" },
     { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "numpy", version = "2.5.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
@@ -633,6 +648,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "manifpy", directory = "../manif" },
     { name = "matplotlib" },
     { name = "numpy" },
     { name = "opencv-python" },
