@@ -10,9 +10,8 @@ Tracks the pose of a rigid object over time from a combination of:
      point-to-point correspondences), i.e. z_i = T.act(p_i) + noise.
 
 Two ways to fuse the two into a pose estimate are implemented, both built on
-the exact same `motion_model`/`observation_model` functions and hand-rolled
-analytical SE(3) Jacobians (closed-form skew/exp/log/adjoint math, no
-external Lie-theory library):
+the exact same `motion_model`/`observation_model` functions and manif's
+built-in analytical Jacobians (no hand-rolled skew/exp/log math):
 
   - EKF (recursive): predict with the motion model + propagate a 6x6 tangent
     covariance, update with the point-cloud observation model + a Kalman
@@ -22,158 +21,20 @@ external Lie-theory library):
     T_0..T_N at once against three factor types (an initial-pose prior, N
     motion factors between consecutive poses, and (N+1)*n_points measurement
     factors), generalizing the single-pose GN correction loop already used in
-    robot_imu_simulation.py to a multi-pose graph. Has access to the full
-    trajectory (not just causal history), so it can do at least as well as
-    the EKF.
+    robot_imu_simulation_manif.py to a multi-pose graph. Has access to the
+    full trajectory (not just causal history), so it can do at least as well
+    as the EKF.
 
 A pure dead-reckoning trajectory (motion model only, no point-cloud
 correction at all) is carried along as the "uncorrected" baseline, and also
 doubles as the batch solver's initial guess.
-
-Poses are represented as (4,4) numpy homogeneous transforms; tangent vectors
-follow the [vx,vy,vz,wx,wy,wz] (translation-first) convention used throughout
-this codebase.
 '''
 
 import argparse
 
 import numpy as np
 import matplotlib.pyplot as plt
-
-
-def skew(v):
-    """Returns the 3x3 skew-symmetric matrix of a 3D vector."""
-    return np.array([
-        [0, -v[2], v[1]],
-        [v[2], 0, -v[0]],
-        [-v[1], v[0], 0],
-    ])
-
-
-def se3_exp(xi):
-    """The Exponential Map for SE(3). Maps a 6-vector [v,omega] to a 4x4 matrix."""
-    v = xi[0:3]
-    omega = xi[3:6]
-    theta = np.linalg.norm(omega)
-    I3 = np.eye(3)
-    T = np.eye(4)
-
-    if theta < 1e-6:
-        R = I3 + skew(omega)
-        V = I3 + 0.5 * skew(omega)
-    else:
-        omega_skew = skew(omega)
-        omega_skew_sq = np.dot(omega_skew, omega_skew)
-        R = I3 + (np.sin(theta) / theta) * omega_skew + ((1.0 - np.cos(theta)) / (theta ** 2)) * omega_skew_sq
-        V = I3 + ((1.0 - np.cos(theta)) / (theta ** 2)) * omega_skew + ((theta - np.sin(theta)) / (theta ** 3)) * omega_skew_sq
-
-    T[0:3, 0:3] = R
-    T[0:3, 3] = np.dot(V, v)
-    return T
-
-
-def se3_log(T):
-    """The Logarithmic Map for SE(3). Extracts a 6-vector [v,omega] from a 4x4 matrix."""
-    R = T[0:3, 0:3]
-    t = T[0:3, 3]
-    I3 = np.eye(3)
-
-    cos_theta = (np.trace(R) - 1.0) / 2.0
-    cos_theta = np.clip(cos_theta, -1.0, 1.0)
-    theta = np.arccos(cos_theta)
-
-    if theta < 1e-6:
-        omega = np.zeros(3)
-        V_inv = I3
-    else:
-        omega_hat = (theta / (2.0 * np.sin(theta))) * (R - R.T)
-        omega = np.array([-omega_hat[1, 2], omega_hat[0, 2], -omega_hat[0, 1]])
-
-        omega_skew = skew(omega)
-        omega_skew_sq = np.dot(omega_skew, omega_skew)
-        V_inv = I3 - 0.5 * omega_skew + (1.0 / (theta ** 2) - (1.0 + np.cos(theta)) / (2.0 * theta * np.sin(theta))) * omega_skew_sq
-
-    rho = np.dot(V_inv, t)
-    return np.concatenate([rho, omega])
-
-
-def se3_inv(T):
-    """Rigid inverse of a 4x4 SE(3) transform."""
-    R, t = T[0:3, 0:3], T[0:3, 3]
-    T_inv = np.eye(4)
-    T_inv[0:3, 0:3] = R.T
-    T_inv[0:3, 3] = -R.T @ t
-    return T_inv
-
-
-def se3_adjoint(T):
-    """The 6x6 SE(3) adjoint, block form [[R, skew(t)@R],[0, R]] for the
-    [v,omega]-ordered tangent convention used throughout this codebase.
-    """
-    R, t = T[0:3, 0:3], T[0:3, 3]
-    Adj = np.zeros((6, 6))
-    Adj[0:3, 0:3] = R
-    Adj[0:3, 3:6] = skew(t) @ R
-    Adj[3:6, 3:6] = R
-    return Adj
-
-
-def compute_so3_inv_right_jacobian(theta_vec):
-    """Computes the 3x3 inverse right Jacobian of SO(3)."""
-    theta = np.linalg.norm(theta_vec)
-    I3 = np.eye(3)
-    if theta < 1e-6:
-        return I3 + 0.5 * skew(theta_vec) + (1.0 / 12.0) * np.dot(skew(theta_vec), skew(theta_vec))
-    theta_skew = skew(theta_vec)
-    theta_skew_sq = np.dot(theta_skew, theta_skew)
-    coeff = (1.0 / (theta ** 2)) - ((1.0 + np.cos(theta)) / (2.0 * theta * np.sin(theta)))
-    return I3 + 0.5 * theta_skew + coeff * theta_skew_sq
-
-
-def compute_se3_inv_right_jacobian(error_vector):
-    """Computes the 6x6 analytical inverse right Jacobian for an SE(3) error vector."""
-    rho = error_vector[0:3]
-    theta_vec = error_vector[3:6]
-    theta = np.linalg.norm(theta_vec)
-
-    J_r_inv_so3 = compute_so3_inv_right_jacobian(theta_vec)
-
-    if theta < 1e-6:
-        Q = 0.5 * skew(rho)
-    else:
-        theta_skew = skew(theta_vec)
-        theta_skew_sq = np.dot(theta_skew, theta_skew)
-
-        coeff_2 = (theta - np.sin(theta)) / (theta ** 3)
-        rho_skew = skew(rho)
-        theta_rho_skew = skew(np.cross(theta_vec, rho))
-
-        coeff_q1 = (theta * np.sin(theta) + 2 * np.cos(theta) - 2) / (2 * theta ** 4 * (np.cos(theta) - 1))
-        if np.isnan(coeff_q1) or np.isinf(coeff_q1):
-            coeff_q1 = -1.0 / 12.0
-
-        Q = (0.5 * rho_skew +
-             (coeff_2 * (np.dot(theta_skew, rho_skew) + np.dot(rho_skew, theta_skew) + np.dot(theta_skew, np.dot(rho_skew, theta_skew)))) +
-             coeff_q1 * np.dot(theta_skew_sq, theta_rho_skew))
-
-    J_inv_se3 = np.zeros((6, 6))
-    J_inv_se3[0:3, 0:3] = J_r_inv_so3
-    J_inv_se3[0:3, 3:6] = Q
-    J_inv_se3[3:6, 3:6] = J_r_inv_so3
-    return J_inv_se3
-
-
-def se3_right_jacobian(xi):
-    """The direct (non-inverse) SE(3) right Jacobian Jr(xi), obtained by inverting
-    the closed-form Jr_inv(xi) above rather than re-deriving a second formula.
-    """
-    return np.linalg.inv(compute_se3_inv_right_jacobian(xi))
-
-
-def rotation_geodesic_error(R_a, R_b):
-    """Angle (rad) of the relative rotation between two rotation matrices."""
-    c = (np.trace(R_a.T @ R_b) - 1.0) / 2.0
-    return np.arccos(np.clip(c, -1.0, 1.0))
+import manifpy as manif
 
 
 def true_body_rates(t):
@@ -215,49 +76,47 @@ def motion_model(T_prev, twist, dt, J_self=None, J_tau=None):
     """Constant body-twist SE(3) motion model: T_pred = T_prev (+) Exp(twist*dt).
     twist = [vx,vy,vz,wx,wy,wz]. If given, J_self/J_tau are filled with the
     Jacobians of T_pred wrt T_prev and wrt the tangent increment, respectively
-    (analytical right-plus Jacobians -- used for EKF covariance propagation and
-    for chaining the GN motion-factor Jacobian).
+    (manif's rplus Jacobians -- used for EKF covariance propagation and for
+    chaining the GN motion-factor Jacobian).
     Arguments:
-        T_prev: previous pose (4,4)
+        T_prev: previous pose (manif.SE3)
         twist: body-frame twist (6-vector)
         dt: time step (s)
         J_self: optional (6,6) array to fill with dT_pred/dT_prev
         J_tau: optional (6,6) array to fill with dT_pred/dtau
     Returns:
-        T_pred: predicted pose (4,4)
+        T_pred: predicted pose (manif.SE3)
     """
-    w = twist * dt
-    T_local = se3_exp(w)
-    T_pred = T_prev @ T_local
-    if J_self is not None:
-        J_self[:] = se3_adjoint(se3_inv(T_local))
-        J_tau[:] = se3_right_jacobian(w)
-    return T_pred
+    tangent = manif.SE3Tangent(twist * dt)
+    if J_self is None:
+        return T_prev.rplus(tangent)
+    return T_prev.rplus(tangent, J_self, J_tau)
 
 
 def observation_model(T, body_points, with_jacobian=False):
     """Point-cloud observation model: predicts every body point transformed
     into the world frame by T. Returns predicted points (M,3) and, if
     requested, the stacked (3M,6) Jacobian wrt a right-perturbation of T
-    (the point-action Jacobian [R | -R@skew(p)] -- used by both the EKF
-    update and the GN measurement factors).
+    (manif's act() Jacobian -- used by both the EKF update and the GN
+    measurement factors).
     Arguments:
-        T: pose (4,4)
+        T: pose (manif.SE3)
         body_points: (M,3) array of points in the object's body frame
         with_jacobian: if True, also return the stacked Jacobian (3M,6)
     Returns:
         pred: (M,3) array of predicted points in the world frame
         J: (3M,6) Jacobian of pred wrt a right-perturbation of T, or None if with_jacobian=False
     """
-    R, t = T[0:3, 0:3], T[0:3, 3]
     n_points = len(body_points)
-    pred = body_points @ R.T + t
-    J = None
-    if with_jacobian:
-        J = np.zeros((3 * n_points, 6))
-        for i, p in enumerate(body_points):
-            J[3 * i:3 * i + 3, 0:3] = R
-            J[3 * i:3 * i + 3, 3:6] = -R @ skew(p)
+    pred = np.zeros((n_points, 3))
+    J = np.zeros((3 * n_points, 6)) if with_jacobian else None
+    for i, p in enumerate(body_points):
+        if with_jacobian:
+            J_i = np.zeros((3, 6))
+            pred[i] = T.act(p, J_i)
+            J[3 * i:3 * i + 3, :] = J_i
+        else:
+            pred[i] = T.act(p)
     return pred, J
 
 
@@ -276,14 +135,14 @@ def generate_ground_truth_and_data(duration, dt, n_points, vel_noise_std, gyro_n
         rng: numpy random number generator
     Returns:
         body_points: (M,3) array of points in the object's body frame
-        T_true: list of true poses (4,4)
+        T_true: list of true poses (manif.SE3)
         u_meas: (N,6) array of noisy body-frame twists
         z: list of noisy point-cloud measurements (M,3)
     """
     n_steps = int(duration / dt)
     body_points = make_body_point_cloud(n_points, rng)
 
-    T_true = [np.eye(4)]
+    T_true = [manif.SE3.Identity()]
     u_meas = np.zeros((n_steps, 6))
     z = [observation_model(T_true[0], body_points)[0]
          + rng.normal(0.0, point_noise_std, (n_points, 3))]
@@ -311,11 +170,11 @@ def run_dead_reckoning(T_init, u_meas, dt):
     """Prior-only baseline: propagate the motion model, never look at the
     point-cloud measurements.
     Arguments:
-        T_init: initial pose (4,4)
+        T_init: initial pose (manif.SE3)
         u_meas: (N,6) array of noisy body-frame twists
         dt: time step (s)
     Returns:
-        T_list: list of predicted poses (4,4)
+        T_list: list of predicted poses (manif.SE3)
     """
     T_list = [T_init]
     for k in range(len(u_meas)):
@@ -328,7 +187,7 @@ def run_ekf(T_init, P_init, u_meas, z, body_points, dt, Q_tangent, point_noise_s
     tangent covariance) with a point-cloud observation-model update step.
     Only ever holds the current (T, P) -- no memory of past states.
     Arguments:
-        T_init: initial pose (4,4)
+        T_init: initial pose (manif.SE3)
         P_init: initial 6x6 tangent covariance (numpy array)
         u_meas: (N,6) array of noisy body-frame twists
         z: list of noisy point-cloud measurements (M,3)
@@ -337,7 +196,7 @@ def run_ekf(T_init, P_init, u_meas, z, body_points, dt, Q_tangent, point_noise_s
         Q_tangent: 6x6 tangent covariance of the motion-model twist increment (numpy array)
         point_noise_std: std-dev of Gaussian noise added to the predicted world-frame point-cloud measurements (m)
     Returns:
-        T_list: list of estimated poses (4,4)
+        T_list: list of estimated poses (manif.SE3)
     """
     n_points = len(body_points)
     R_diag = point_noise_std ** 2 * np.eye(3 * n_points)
@@ -357,7 +216,7 @@ def run_ekf(T_init, P_init, u_meas, z, body_points, dt, Q_tangent, point_noise_s
         K = P_pred @ H.T @ np.linalg.inv(S)
         delta = K @ r
 
-        T_est = T_pred @ se3_exp(delta)
+        T_est = T_pred.rplus(manif.SE3Tangent(delta))
         P = (np.eye(6) - K @ H) @ P_pred
 
         T_list.append(T_est)
@@ -372,15 +231,15 @@ def run_batch_gn(T_init_list, T_prior0, P_init, u_meas, z, body_points, dt, Q_ta
     (N+1)*n_points measurement factors, all built from the same
     motion_model/observation_model as the EKF.
     Arguments:
-        T_init_list: list of initial pose guesses (4,4)
-        T_prior0: prior pose on T_0 (4,4)
+        T_init_list: list of initial pose guesses (manif.SE3)
+        T_prior0: prior pose on T_0 (manif.SE3)
         P_init: 6x6 tangent covariance of the prior on T_0 (numpy array)
         u_meas: (N,6) array of noisy body-frame twists
         z: list of noisy point-cloud measurements (M,3)
         body_points: (M,3) array of points in the object's body frame
-        dt: time step (s)
+        dt: time step (s)       
     Returns:
-        T_est: list of estimated poses (4,4)
+        T_est: list of estimated poses (manif.SE3)
     """
     n_poses = len(T_init_list)
     n_points = len(body_points)
@@ -397,8 +256,9 @@ def run_batch_gn(T_init_list, T_prior0, P_init, u_meas, z, body_points, dt, Q_ta
         g = np.zeros(dof)
 
         # --- Prior factor on T_0 ---
-        e0 = se3_log(se3_inv(T_prior0) @ T_est[0])
-        Jp = compute_se3_inv_right_jacobian(e0)
+        Jp = np.zeros((6, 6))
+        e0 = T_est[0].rminus(T_prior0, Jp)
+        e0 = e0.coeffs()
         H[0:6, 0:6] += Jp.T @ Omega_prior @ Jp
         g[0:6] += -Jp.T @ Omega_prior @ e0
 
@@ -407,9 +267,8 @@ def run_batch_gn(T_init_list, T_prior0, P_init, u_meas, z, body_points, dt, Q_ta
             Jc_self, Jc_tau = np.zeros((6, 6)), np.zeros((6, 6))
             T_pred = motion_model(T_est[k - 1], u_meas[k - 1], dt, Jc_self, Jc_tau)
 
-            e_k = se3_log(se3_inv(T_pred) @ T_est[k])
-            Ja = compute_se3_inv_right_jacobian(e_k)
-            Jb = -compute_se3_inv_right_jacobian(-e_k)
+            Ja, Jb = np.zeros((6, 6)), np.zeros((6, 6))
+            e_k = T_est[k].rminus(T_pred, Ja, Jb).coeffs()
 
             J_prev = Jb @ Jc_self  # d e_k / d T_est[k-1], chained through T_pred
             J_curr = Ja            # d e_k / d T_est[k]
@@ -436,7 +295,7 @@ def run_batch_gn(T_init_list, T_prior0, P_init, u_meas, z, body_points, dt, Q_ta
         delta = np.linalg.solve(H, g)
 
         for k in range(n_poses):
-            T_est[k] = T_est[k] @ se3_exp(delta[6 * k:6 * k + 6])
+            T_est[k] = T_est[k].rplus(manif.SE3Tangent(delta[6 * k:6 * k + 6]))
 
         step_norm = np.linalg.norm(delta)
         if step_norm < gn_tol:
@@ -451,8 +310,8 @@ def run_batch_gn(T_init_list, T_prior0, P_init, u_meas, z, body_points, dt, Q_ta
 def pose_errors(T_true_list, T_est_list):
     """Rotation geodesic error (deg) and position error (m), per step.
     Arguments:
-        T_true_list: list of true poses (4,4)
-        T_est_list: list of estimated poses (4,4)
+        T_true_list: list of true poses (manif.SE3)
+        T_est_list: list of estimated poses (manif.SE3)
     Returns:
         rot_err: (N,) array of rotation errors (deg)
         pos_err: (N,) array of position errors (m)
@@ -460,30 +319,32 @@ def pose_errors(T_true_list, T_est_list):
     n = len(T_true_list)
     rot_err, pos_err = np.zeros(n), np.zeros(n)
     for k in range(n):
-        rot_err[k] = np.degrees(rotation_geodesic_error(T_true_list[k][0:3, 0:3], T_est_list[k][0:3, 0:3]))
-        pos_err[k] = np.linalg.norm(T_true_list[k][0:3, 3] - T_est_list[k][0:3, 3])
+        R_true = manif.SO3(T_true_list[k].coeffs()[3:7])
+        R_est = manif.SO3(T_est_list[k].coeffs()[3:7])
+        rot_err[k] = np.degrees(np.linalg.norm(R_est.rminus(R_true).coeffs()))
+        pos_err[k] = np.linalg.norm(T_true_list[k].translation() - T_est_list[k].translation())
     return rot_err, pos_err
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-
+    
     parser.add_argument("--duration", type=float, default=5.0, help="Simulation length in seconds")
     parser.add_argument("--dt", type=float, default=0.1, help="Motion/measurement step interval in seconds")
     parser.add_argument("--n-points", type=int, default=20, help="Number of body-frame point-cloud landmarks")
-
+    
     parser.add_argument("--vel-noise-std", type=float, default=0.05, help="Input linear-velocity noise std-dev (m/s)")
     parser.add_argument("--gyro-noise-std", type=float, default=0.02, help="Input angular-velocity noise std-dev (rad/s)")
     parser.add_argument("--point-noise-std", type=float, default=0.03, help="Point-cloud measurement noise std-dev (m)")
     parser.add_argument("--init-pose-noise-std", type=float, default=0.1, help="Std-dev used to perturb the initial pose guess and set the prior/EKF-init covariance")
-
+    
     parser.add_argument("--gn-tol", type=float, default=1e-6, help="Batch Gauss-Newton convergence tolerance")
     parser.add_argument("--gn-max-iters", type=int, default=20, help="Maximum batch Gauss-Newton iterations")
-
+    
     parser.add_argument("--seed", type=int, default=0, help="RNG seed")
-
+    
     parser.add_argument("--out", type=str, default=None, help="Save the figure to this path instead of showing it")
-
+    
     args = parser.parse_args()
 
     rng = np.random.default_rng(args.seed)
@@ -495,7 +356,7 @@ def main():
 
     # Shared, uncertain initial pose guess for every method (EKF init and GN prior).
     init_offset = rng.normal(0.0, args.init_pose_noise_std, 6)
-    T_init = T_true[0] @ se3_exp(init_offset)
+    T_init = T_true[0].rplus(manif.SE3Tangent(init_offset))
     P_init = args.init_pose_noise_std ** 2 * np.eye(6)
 
     # Process noise covariance of the twist *rate*; the tangent increment fed to
@@ -546,7 +407,7 @@ def main():
     ax_pos.set_xlabel("Time (s)")
 
     def xy(T_list):
-        pts = np.array([T[0:3, 3] for T in T_list])
+        pts = np.array([T.translation() for T in T_list])
         return pts[:, 0], pts[:, 1]
 
     ax_traj.plot(*xy(T_true), label="Ground truth", color="black", linewidth=2)

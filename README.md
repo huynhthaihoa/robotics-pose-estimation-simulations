@@ -38,7 +38,11 @@ Two implementation styles run side by side for the core comparison scripts:
   object's pose from a motion-model prior (noisy control inputs) fused with
   noisy point-cloud measurements of its known geometry, comparing a
   recursive **EKF** against a **batch Gauss-Newton** smoother over the whole
-  trajectory — on `manifpy`.
+  trajectory — plain numpy, reusing the same hand-rolled SE(3) Exp/Log/
+  inverse-right-Jacobian math as `robot_imu_simulation.py`, plus a hand-rolled
+  adjoint/right-Jacobian for the motion-model Jacobians.
+- [pointcloud_pose_tracking_manif.py](pointcloud_pose_tracking_manif.py): the
+  same tracker, on `manifpy`.
 - [main.py](main.py): unused `uv init` placeholder entry point.
 - [pyproject.toml](pyproject.toml): uv project file. `manifpy` is sourced
   from the local sibling checkout `../manif` (see Installation below).
@@ -51,7 +55,8 @@ Two implementation styles run side by side for the core comparison scripts:
   Python bindings built (`pip3 install --user ../manif`, requires a working
   Eigen3 + CMake toolchain) before `uv sync` can resolve it. The
   plain-numpy scripts (`imu_integration_comparison.py`,
-  `robot_imu_simulation.py`, `simulation2.py`) don't need this.
+  `robot_imu_simulation.py`, `simulation2.py`, `pointcloud_pose_tracking.py`)
+  don't need this.
 - Then sync dependencies: `uv sync`
 - Run any script with `uv run`, e.g.: `uv run python imu_integration_comparison.py`
 
@@ -126,13 +131,15 @@ uv run python simulation2.py --frequency-hz 100 --gyro-bias 0.01 -0.01 0.02 --ac
 
 ### 4. Point-cloud pose tracking: EKF vs. batch Gauss-Newton
 
-`pointcloud_pose_tracking.py`
+`pointcloud_pose_tracking.py` / `pointcloud_pose_tracking_manif.py`
 
 Tracks a rigid object's SE(3) pose from a combination of a motion-model
 prior (noisy control-input twist) and noisy point-cloud measurements of the
 object's known body-frame geometry (`z_i = T.act(p_i) + noise`). Two shared,
-documented functions — `motion_model` and `observation_model`, both built on
-`manifpy`'s analytical Jacobians — feed three solvers: a prior-only
+documented functions — `motion_model` and `observation_model`, both with
+analytical Jacobians (hand-rolled SE(3) Exp/Log/adjoint math in the plain
+numpy version; `manifpy`'s `rplus`/`rminus`/`act` out-parameters in the
+`_manif` version) — feed three solvers: a prior-only
 dead-reckoning baseline, a recursive **EKF** (constant-size state, online),
 and a **batch Gauss-Newton** smoother that jointly optimizes the whole
 trajectory at once against prior/motion/measurement factors. Prints
