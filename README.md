@@ -60,8 +60,6 @@ Two implementation styles run side by side for the core comparison scripts:
 - Then sync dependencies: `uv sync`
 - Run any script with `uv run`, e.g.: `uv run python imu_integration_comparison.py`
 
-> **Note:** regarding `manifpy`, please refer to [manif (A small C++11 header-only library for Lie theory)](https://github.com/artivis/manif)
-
 ## Usage
 
 ### 1. Naive vs. exp-map IMU integration
