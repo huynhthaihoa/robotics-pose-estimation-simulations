@@ -9,46 +9,69 @@ manifolds: how orientation and pose should be integrated and corrected on
 **measurements** either **recursively** (Kalman filtering) or in **batch**
 (Gauss-Newton optimization).
 
-Two implementation styles run side by side for the core comparison scripts:
-- **Plain numpy**: skew-symmetric matrices, `Exp`/`Log` maps, and Jacobians
-  written out by hand (Rodrigues' formula, the SE(3) exponential/logarithm,
-  the analytical inverse right Jacobian).
-- **manifpy**: the same math delegated to the
+Two implementation styles run side by side for the core comparison scripts,
+split into sibling directories with matching filenames:
+- [use_numpy/](use_numpy/): skew-symmetric matrices, `Exp`/`Log` maps, and
+  Jacobians written out by hand (Rodrigues' formula, the SE(3)
+  exponential/logarithm, the analytical inverse right Jacobian), shared
+  across scripts via [use_numpy/lie_utils.py](use_numpy/lie_utils.py).
+- [use_manif/](use_manif/): the same math delegated to the
   [`manif`](https://github.com/artivis/manif) Lie-theory library's Python
   bindings (`T.rplus`, `T.rminus`, `T.act`, all with analytical Jacobians
   returned as out-parameters), so no manifold formula is hand-rolled.
 
+Each `use_manif/<name>.py` is the manifpy counterpart of `use_numpy/<name>.py`
+of the same filename.
+
 ## Library structure
 
-- [imu_integration_comparison.py](imu_integration_comparison.py): naive
-  Euler-angle vs. SO(3) exp-map orientation integration — plain numpy.
-- [imu_integration_comparison_manif.py](imu_integration_comparison_manif.py):
-  the same comparison, fully on `manifpy`'s SE(3)/SO(3) ops.
-- [robot_imu_simulation.py](robot_imu_simulation.py): high-rate IMU
-  propagation + a low-rate Gauss-Newton pose correction (à la a GPS fix) —
-  plain numpy, with the full SE(3) Exp/Log/inverse-right-Jacobian math
-  written from scratch.
-- [robot_imu_simulation_manif.py](robot_imu_simulation_manif.py): the same
-  simulation, on `manifpy`.
-- [simulation2.py](simulation2.py): IMU pre-integration — compresses a burst
-  of high-frequency IMU samples into one relative measurement plus
-  first-order bias Jacobians, then shows an instant Taylor-expansion
-  correction when the bias estimate changes, without re-integrating.
-- [pointcloud_pose_tracking.py](pointcloud_pose_tracking.py): tracks a rigid
-  object's pose from a motion-model prior (noisy control inputs) fused with
-  noisy point-cloud measurements of its known geometry, comparing a
-  recursive **EKF** against a **batch Gauss-Newton** smoother over the whole
-  trajectory — plain numpy, reusing the same hand-rolled SE(3) Exp/Log/
-  inverse-right-Jacobian math as `robot_imu_simulation.py`, plus a hand-rolled
-  adjoint/right-Jacobian for the motion-model Jacobians.
-- [pointcloud_pose_tracking_manif.py](pointcloud_pose_tracking_manif.py): the
-  same tracker, on `manifpy`.
-- [pose_graph.py](pose_graph.py): a small closed-loop 3D pose-graph
-  relaxation (odometry drift + one loop closure), jointly optimized via
-  Levenberg-Marquardt — plain numpy, reusing the same hand-rolled SE(3)
+### [use_numpy/](use_numpy/) — plain numpy, hand-rolled Lie-group math
+
+- [lie_utils.py](use_numpy/lie_utils.py): shared module of the hand-rolled
+  Lie-group helpers (`skew`, `rotation_geodesic_error`, `so3_exp`,
+  `so3_right_jacobian`, `se3_exp`, `se3_log`, `se3_inv`, `se3_adjoint`,
+  `compute_so3_inv_right_jacobian`, `compute_se3_inv_right_jacobian`,
+  `se3_right_jacobian`), imported by `imu_integration_comparison.py`,
+  `imu_preintegration.py`, `pointcloud_pose_tracking.py`, and `pose_graph.py`.
+  `robot_imu_simulation.py` still keeps its own inline copies of the
+  skew/Jacobian helpers and hasn't been migrated to import from here yet.
+- [imu_integration_comparison.py](use_numpy/imu_integration_comparison.py):
+  naive Euler-angle vs. SO(3) exp-map orientation integration.
+- [robot_imu_simulation.py](use_numpy/robot_imu_simulation.py): high-rate
+  IMU propagation + a low-rate Gauss-Newton pose correction (à la a GPS fix),
+  with the full SE(3) Exp/Log/inverse-right-Jacobian math written from
+  scratch inline.
+- [imu_preintegration.py](use_numpy/imu_preintegration.py): IMU
+  pre-integration — compresses a burst of high-frequency IMU samples into
+  one relative measurement plus first-order bias Jacobians, then shows an
+  instant Taylor-expansion correction when the bias estimate changes,
+  without re-integrating.
+- [pointcloud_pose_tracking.py](use_numpy/pointcloud_pose_tracking.py):
+  tracks a rigid object's pose from a motion-model prior (noisy control
+  inputs) fused with noisy point-cloud measurements of its known geometry,
+  comparing a recursive **EKF** against a **batch Gauss-Newton** smoother
+  over the whole trajectory, reusing `lie_utils.py`'s SE(3) Exp/Log/
+  inverse-right-Jacobian math plus a hand-rolled adjoint/right-Jacobian for
+  the motion-model Jacobians. Also reports empirical per-step time and peak
+  memory for each of the three approaches.
+- [pose_graph.py](use_numpy/pose_graph.py): a small closed-loop 3D
+  pose-graph relaxation (odometry drift + one loop closure), jointly
+  optimized via Levenberg-Marquardt, reusing the same `lie_utils.py` SE(3)
   Exp/Log/inverse-right-Jacobian/adjoint math as `pointcloud_pose_tracking.py`.
-- [pose_graph_manif.py](pose_graph_manif.py): the same relaxation, on
-  `manifpy`'s `compose`/`rminus` Jacobians.
+
+### [use_manif/](use_manif/) — same simulations, on `manifpy`
+
+- [imu_integration_comparison.py](use_manif/imu_integration_comparison.py)
+- [robot_imu_simulation.py](use_manif/robot_imu_simulation.py)
+- [imu_preintegration.py](use_manif/imu_preintegration.py): same bias-Jacobian
+  preintegration bundle, with the SO(3) Exp map / right Jacobian / skew(hat)
+  math delegated to manif's `rplus` Jacobian out-parameters and
+  `SO3Tangent.hat()` instead of hand-rolled formulas.
+- [pointcloud_pose_tracking.py](use_manif/pointcloud_pose_tracking.py)
+- [pose_graph.py](use_manif/pose_graph.py)
+
+### Root
+
 - [main.py](main.py): unused `uv init` placeholder entry point.
 - [pyproject.toml](pyproject.toml): uv project file. `manifpy` is sourced
   from the local sibling checkout `../manif` (see Installation below).
@@ -60,17 +83,17 @@ Two implementation styles run side by side for the core comparison scripts:
   `uv` at a local sibling checkout (`../manif`), which must already have its
   Python bindings built (`pip3 install --user ../manif`, requires a working
   Eigen3 + CMake toolchain) before `uv sync` can resolve it. The
-  plain-numpy scripts (`imu_integration_comparison.py`,
-  `robot_imu_simulation.py`, `simulation2.py`, `pointcloud_pose_tracking.py`,
-  `pose_graph.py`) don't need this.
+  [use_numpy/](use_numpy/) scripts don't need this — only the
+  [use_manif/](use_manif/) scripts do.
 - Then sync dependencies: `uv sync`
-- Run any script with `uv run`, e.g.: `uv run python imu_integration_comparison.py`
+- Run any script with `uv run` from the `python-codebase` directory, e.g.:
+  `uv run python use_numpy/imu_integration_comparison.py`
 
 ## Usage
 
 ### 1. Naive vs. exp-map IMU integration
 
-`imu_integration_comparison.py` / `imu_integration_comparison_manif.py`
+`use_numpy/imu_integration_comparison.py` / `use_manif/imu_integration_comparison.py`
 
 Integrates the same noisy gyro + body-velocity stream two ways — attitude
 kept as a flat Euler-angle vector (`euler += omega*dt`) vs. attitude kept on
@@ -80,7 +103,7 @@ exp-map integration of the noise-free rates. Plots rotation and position
 error (log scale) over time.
 
 ```
-uv run python imu_integration_comparison.py --duration 20.0 --dt 0.005 --gyro-noise-std 0.02 --vel-noise-std 0.05 --seed 0 --out out.png
+uv run python use_numpy/imu_integration_comparison.py --duration 20.0 --dt 0.005 --gyro-noise-std 0.02 --vel-noise-std 0.05 --seed 0 --out out.png
 ```
 
 - `--duration`: simulation length in seconds (default `20.0`)
@@ -92,7 +115,7 @@ uv run python imu_integration_comparison.py --duration 20.0 --dt 0.005 --gyro-no
 
 ### 2. IMU propagation + Gauss-Newton position correction
 
-`robot_imu_simulation.py` / `robot_imu_simulation_manif.py`
+`use_numpy/robot_imu_simulation.py` / `use_manif/robot_imu_simulation.py`
 
 Simulates a robot with a 100 Hz IMU (noisy body twist) and a 1 Hz
 high-accuracy global position fix (e.g. GPS). Each second: propagate the
@@ -103,7 +126,7 @@ norm drops below `--gn-tol` or `--gn-max-iters` is hit. Prints pre/post
 correction error each second (no plot).
 
 ```
-uv run python robot_imu_simulation.py --dt-imu 0.01 --total-seconds 3 --snapshots-per-second 4 --gn-tol 1e-6 --gn-max-iters 10 --max-linear-vel 1.0 --max-angular-vel 0.5
+uv run python use_numpy/robot_imu_simulation.py --dt-imu 0.01 --total-seconds 3 --snapshots-per-second 4 --gn-tol 1e-6 --gn-max-iters 10 --max-linear-vel 1.0 --max-angular-vel 0.5
 ```
 
 - `--dt-imu`: IMU update interval in seconds (default `0.01`, i.e. 100 Hz)
@@ -116,7 +139,7 @@ uv run python robot_imu_simulation.py --dt-imu 0.01 --total-seconds 3 --snapshot
 
 ### 3. IMU pre-integration with bias Jacobians
 
-`simulation2.py`
+`use_numpy/imu_preintegration.py` / `use_manif/imu_preintegration.py`
 
 Streams 1 second of high-frequency IMU samples into a single
 `PreintegratedIMUBundle` (compressed relative rotation/velocity/position,
@@ -125,7 +148,7 @@ bias update and applies it to the bundle via a first-order Taylor correction
 — instant, versus re-running the whole integration loop.
 
 ```
-uv run python simulation2.py --frequency-hz 100 --gyro-bias 0.01 -0.01 0.02 --accel-bias 0.05 0.00 -0.05 --linear-vel 1.0 0.1 0.0 --angular-vel 0.0 0.0 0.5 --optimized-gyro-bias 0.008 -0.009 0.018 --optimized-accel-bias 0.045 0.002 -0.048
+uv run python use_numpy/imu_preintegration.py --frequency-hz 100 --gyro-bias 0.01 -0.01 0.02 --accel-bias 0.05 0.00 -0.05 --linear-vel 1.0 0.1 0.0 --angular-vel 0.0 0.0 0.5 --optimized-gyro-bias 0.008 -0.009 0.018 --optimized-accel-bias 0.045 0.002 -0.048
 ```
 
 - `--frequency-hz`: IMU sampling frequency integrated over 1 simulated second (default `100`)
@@ -135,23 +158,26 @@ uv run python simulation2.py --frequency-hz 100 --gyro-bias 0.01 -0.01 0.02 --ac
 
 ### 4. Point-cloud pose tracking: EKF vs. batch Gauss-Newton
 
-`pointcloud_pose_tracking.py` / `pointcloud_pose_tracking_manif.py`
+`use_numpy/pointcloud_pose_tracking.py` / `use_manif/pointcloud_pose_tracking.py`
 
 Tracks a rigid object's SE(3) pose from a combination of a motion-model
 prior (noisy control-input twist) and noisy point-cloud measurements of the
 object's known body-frame geometry (`z_i = T.act(p_i) + noise`). Two shared,
 documented functions — `motion_model` and `observation_model`, both with
-analytical Jacobians (hand-rolled SE(3) Exp/Log/adjoint math in the plain
-numpy version; `manifpy`'s `rplus`/`rminus`/`act` out-parameters in the
-`_manif` version) — feed three solvers: a prior-only
-dead-reckoning baseline, a recursive **EKF** (constant-size state, online),
-and a **batch Gauss-Newton** smoother that jointly optimizes the whole
-trajectory at once against prior/motion/measurement factors. Prints
-final/RMS rotation+position error per method and plots rotation error,
-position error, and the x-y trajectory of all four (ground truth included).
+analytical Jacobians (hand-rolled SE(3) Exp/Log/adjoint math via
+`lie_utils.py` in the `use_numpy` version; `manifpy`'s
+`rplus`/`rminus`/`act` out-parameters in the `use_manif` version) — feed
+three solvers: a prior-only dead-reckoning baseline, a recursive **EKF**
+(constant-size state, online), and a **batch Gauss-Newton** smoother that
+jointly optimizes the whole trajectory at once against prior/motion/
+measurement factors. Prints final/RMS rotation+position error per method,
+plus each method's empirical average per-step wall-clock time and peak
+memory (`measure_performance`, via `time.perf_counter` + `tracemalloc`), and
+plots rotation error, position error, and the x-y trajectory of all four
+(ground truth included).
 
 ```
-uv run python pointcloud_pose_tracking.py --duration 5.0 --dt 0.1 --n-points 20 --vel-noise-std 0.05 --gyro-noise-std 0.02 --point-noise-std 0.03 --init-pose-noise-std 0.1 --gn-tol 1e-6 --gn-max-iters 20 --seed 0 --out out.png
+uv run python use_numpy/pointcloud_pose_tracking.py --duration 5.0 --dt 0.1 --n-points 20 --vel-noise-std 0.05 --gyro-noise-std 0.02 --point-noise-std 0.03 --init-pose-noise-std 0.1 --gn-tol 1e-6 --gn-max-iters 20 --seed 0 --out out.png
 ```
 
 - `--duration`: simulation length in seconds (default `5.0`)
@@ -168,7 +194,7 @@ uv run python pointcloud_pose_tracking.py --duration 5.0 --dt 0.1 --n-points 20 
 
 ### 5. 3D pose-graph relaxation
 
-`pose_graph.py` / `pose_graph_manif.py`
+`use_numpy/pose_graph.py` / `use_manif/pose_graph.py`
 
 A robot drives a closed 4-node square loop, accumulating drift from noisy
 relative-pose ("odometry") edges between consecutive nodes, then detects it
@@ -176,16 +202,16 @@ has returned to the start and adds one loop-closure edge back to node 0. All
 node poses are jointly refined by Levenberg-Marquardt against every edge's
 residual `e_ij = Log(Z_ij^-1 * X_i^-1 * X_j)`, using analytical
 `compose`/`rminus` Jacobians chained together (hand-rolled SE(3) Exp/Log/
-adjoint math in the plain numpy version; `manifpy`'s out-parameters in the
-`_manif` version) — the same motion-factor Jacobian-chaining pattern as
-`run_batch_gn` in `pointcloud_pose_tracking.py`, generalized from a
-twist-based motion model to a directly-measured relative pose. Prints
-per-iteration chi-squared error plus final/RMS rotation+position error
-(uncorrected odometry vs. optimized), and plots the XY trajectory against
-ground truth.
+adjoint math via `lie_utils.py` in the `use_numpy` version; `manifpy`'s
+out-parameters in the `use_manif` version) — the same motion-factor
+Jacobian-chaining pattern as `run_batch_gn` in `pointcloud_pose_tracking.py`,
+generalized from a twist-based motion model to a directly-measured relative
+pose. Prints per-iteration chi-squared error plus final/RMS rotation+position
+error (uncorrected odometry vs. optimized), and plots the XY trajectory
+against ground truth.
 
 ```
-uv run python pose_graph.py --side-length 2.0 --pos-noise-std 0.05 --rot-noise-std 0.01 --loop-noise-scale 0.5 --damping 0.01 --gn-tol 1e-6 --gn-max-iters 10 --seed 0 --out out.png
+uv run python use_numpy/pose_graph.py --side-length 2.0 --pos-noise-std 0.05 --rot-noise-std 0.01 --loop-noise-scale 0.5 --damping 0.01 --gn-tol 1e-6 --gn-max-iters 10 --seed 0 --out out.png
 ```
 
 - `--side-length`: side length of the square ground-truth loop, m (default `2.0`)

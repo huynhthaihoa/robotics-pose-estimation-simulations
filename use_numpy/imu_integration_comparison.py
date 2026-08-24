@@ -33,36 +33,7 @@ import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 
-def skew(v):
-    """
-    Returns the skew-symmetric matrix of a 3-vector, which is used to compute
-    cross products and is essential in the exponential map for SO(3).
-    For a vector v = [vx, vy, vz], the skew-symmetric matrix is:
-    
-        [[ 0   -vz   vy]
-         [ vz   0   -vx]
-         [-vy   vx   0 ]]
-
-
-    """
-    return np.array([
-        [0, -v[2], v[1]],
-        [v[2], 0, -v[0]],
-        [-v[1], v[0], 0],
-    ])
-def so3_exp(omega):
-    """
-    Rodrigues' formula: exact exponential map for a constant body rate over dt.
-    Input: omega is a 3-vector of angular velocity (rad/s). 
-    Output: a rotation matrix.
-    """
-    theta = np.linalg.norm(omega)
-    if theta < 1e-8:
-        return np.eye(3) + skew(omega)
-    axis_skew = skew(omega / theta)
-    return (np.eye(3)
-            + np.sin(theta) * axis_skew
-            + (1 - np.cos(theta)) * (axis_skew @ axis_skew))
+from lie_utils import so3_exp, rotation_geodesic_error
 
 
 def euler_to_R(rpy):
@@ -75,12 +46,6 @@ def euler_to_R(rpy):
     Ry = np.array([[cp, 0, sp], [0, 1, 0], [-sp, 0, cp]])
     Rz = np.array([[cy, -sy, 0], [sy, cy, 0], [0, 0, 1]])
     return Rz @ Ry @ Rx
-
-
-def rotation_geodesic_error(R_a, R_b):
-    """Angle (rad) of the relative rotation between two rotation matrices."""
-    c = (np.trace(R_a.T @ R_b) - 1.0) / 2.0
-    return np.arccos(np.clip(c, -1.0, 1.0))
 
 
 def true_body_rates(t):

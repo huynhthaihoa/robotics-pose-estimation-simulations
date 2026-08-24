@@ -10,32 +10,8 @@ correction without re-running the integration loop.
 import numpy as np
 import argparse
 
-def skew(v):
-    """Returns the 3x3 skew-symmetric matrix of a 3D vector."""
-    return np.array([
-        [0, -v[2],  v[1]],
-        [v[2],   0, -v[0]],
-        [-v[1], v[0],   0]
-    ])
+from lie_utils import so3_exp, so3_right_jacobian, skew
 
-def so3_exp(omega):
-    """Computes the 3x3 rotation matrix using Rodrigues' formula (SO(3) Exp)."""
-    theta = np.linalg.norm(omega)
-    I3 = np.eye(3)
-    if theta < 1e-6:
-        return I3 + skew(omega)
-    omega_skew = skew(omega)
-    return I3 + (np.sin(theta) / theta) * omega_skew + ((1.0 - np.cos(theta)) / (theta**2)) * np.dot(omega_skew, omega_skew)
-
-def so3_right_jacobian(omega):
-    """Computes the 3x3 Right Jacobian of SO(3) for the bias-Jacobian recursion."""
-    theta = np.linalg.norm(omega)
-    I3 = np.eye(3)
-    if theta < 1e-6:
-        return I3 - 0.5 * skew(omega)
-    omega_skew = skew(omega)
-    omega_skew_sq = np.dot(omega_skew, omega_skew)
-    return I3 - ((1.0 - np.cos(theta)) / (theta**2)) * omega_skew + ((theta - np.sin(theta)) / (theta**3)) * omega_skew_sq
 
 class PreintegratedIMUBundle:
     """
