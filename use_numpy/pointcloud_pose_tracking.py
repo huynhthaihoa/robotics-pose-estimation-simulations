@@ -9,7 +9,7 @@ Tracks the pose of a rigid object over time from a combination of:
      point cloud is observed transformed into the world frame (noisy 3D
      point-to-point correspondences), i.e. z_i = T.act(p_i) + noise.
 
-Two ways to fuse the two into a pose estimate are implemented, both built on
+Three ways to fuse the two into a pose estimate are implemented, all built on
 the exact same `motion_model`/`observation_model` functions and hand-rolled
 analytical SE(3) Jacobians (closed-form skew/exp/log/adjoint math, no
 external Lie-theory library):
@@ -17,6 +17,13 @@ external Lie-theory library):
   - EKF (recursive): predict with the motion model + propagate a 6x6 tangent
     covariance, update with the point-cloud observation model + a Kalman
     gain. Constant-size state (T, P); only ever looks at the current step.
+
+  - Invariant EKF / IEKF (recursive): same predict step as the EKF (already
+    exact for this group-affine motion model), but the update expresses the
+    residual in the estimate's body frame, which makes the point-cloud
+    measurement Jacobian state-independent (depends only on the fixed body
+    points, never on the current pose estimate) instead of being
+    re-linearized around the current rotation every step.
 
   - Batch Gauss-Newton (smoother): jointly optimizes the *whole* trajectory
     T_0..T_N at once against three factor types (an initial-pose prior, N
@@ -256,6 +263,65 @@ def run_ekf(T_init, P_init, u_meas, z, body_points, dt, Q_tangent, point_noise_s
     return T_list
 
 
+def run_iekf(T_init, P_init, u_meas, z, body_points, dt, Q_tangent, point_noise_std):
+    """Left-invariant EKF: identical predict step to `run_ekf` (already exact for
+    this group-affine motion model), but the update expresses the residual in the
+    estimate's body frame -- z_body = T_pred^-1 @ z -- instead of the world frame.
+    That makes the measurement Jacobian [I | -skew(p_i)] state-independent (only
+    depends on the fixed body points, never on the current rotation estimate), so
+    it's precomputed once outside the loop instead of being re-derived from R_pred
+    every step.
+
+    Note: with isotropic point-noise covariance (R_diag = sigma^2 * I), the
+    world-frame (EKF) and body-frame (here) residual/Jacobian pairs differ only by
+    a per-point orthogonal rotation (R_pred), which cancels exactly out of the
+    Kalman gain and posterior covariance -- so this produces the *exact same*
+    corrections as run_ekf every step, not just similar ones. The real benefit here
+    is computational (H is fixed, no per-step Jacobian rebuild) and structural
+    (state-independent linearization), not different accuracy on this benchmark.
+    Arguments:
+        T_init: initial pose (4,4)
+        P_init: initial 6x6 tangent covariance (numpy array)
+        u_meas: (N,6) array of noisy body-frame twists
+        z: list of noisy point-cloud measurements (M,3)
+        body_points: (M,3) array of points in the object's body frame
+        dt: time step (s)
+        Q_tangent: 6x6 tangent covariance of the motion-model twist increment (numpy array)
+        point_noise_std: std-dev of Gaussian noise added to the predicted world-frame point-cloud measurements (m)
+    Returns:
+        T_list: list of estimated poses (4,4)
+    """
+    n_points = len(body_points)
+    R_diag = point_noise_std ** 2 * np.eye(3 * n_points)
+
+    H = np.zeros((3 * n_points, 6))
+    for i, p in enumerate(body_points):
+        H[3 * i:3 * i + 3, 0:3] = np.eye(3)
+        H[3 * i:3 * i + 3, 3:6] = -skew(p)
+
+    T_est, P = T_init, P_init.copy()
+    T_list = [T_est]
+    for k in range(len(u_meas)):
+        # --- Predict (same as run_ekf) ---
+        J_self, J_tau = np.zeros((6, 6)), np.zeros((6, 6))
+        T_pred = motion_model(T_est, u_meas[k], dt, J_self, J_tau)
+        P_pred = J_self @ P @ J_self.T + J_tau @ Q_tangent @ J_tau.T
+
+        # --- Update (body-frame residual, fixed Jacobian) ---
+        R_pred, t_pred = T_pred[0:3, 0:3], T_pred[0:3, 3]
+        r = ((z[k + 1] - t_pred) @ R_pred - body_points).reshape(-1)
+        S = H @ P_pred @ H.T + R_diag
+        K = P_pred @ H.T @ np.linalg.inv(S)
+        delta = K @ r
+
+        T_est = T_pred @ se3_exp(delta)
+        P = (np.eye(6) - K @ H) @ P_pred
+
+        T_list.append(T_est)
+
+    return T_list
+
+
 def run_batch_gn(T_init_list, T_prior0, P_init, u_meas, z, body_points, dt, Q_tangent,
                   point_noise_std, gn_tol, gn_max_iters):
     """Batch Gauss-Newton smoother: jointly optimizes the whole trajectory
@@ -408,6 +474,11 @@ def main():
         run_ekf, T_init, P_init, u_meas, z, body_points, args.dt, Q_tangent, args.point_noise_std,
         n_steps=n_steps)
 
+    print("Running invariant EKF (body-frame residual, state-independent measurement Jacobian)...")
+    T_iekf, time_iekf, mem_iekf = measure_performance(
+        run_iekf, T_init, P_init, u_meas, z, body_points, args.dt, Q_tangent, args.point_noise_std,
+        n_steps=n_steps)
+
     print("Running batch Gauss-Newton (joint optimization over the whole trajectory)...")
     T_gn, time_gn, mem_gn = measure_performance(
         run_batch_gn, T_dr, T_init, P_init, u_meas, z, body_points, args.dt, Q_tangent,
@@ -415,12 +486,14 @@ def main():
 
     rot_err_dr, pos_err_dr = pose_errors(T_true, T_dr)
     rot_err_ekf, pos_err_ekf = pose_errors(T_true, T_ekf)
+    rot_err_iekf, pos_err_iekf = pose_errors(T_true, T_iekf)
     rot_err_gn, pos_err_gn = pose_errors(T_true, T_gn)
 
     print("\nFinal / RMS errors:")
     for name, rot_err, pos_err in [
         ("Dead-reckoning", rot_err_dr, pos_err_dr),
         ("EKF (recursive)", rot_err_ekf, pos_err_ekf),
+        ("IEKF (invariant)", rot_err_iekf, pos_err_iekf),
         ("Batch GN", rot_err_gn, pos_err_gn),
     ]:
         print(f"  {name:<18s} final rot={rot_err[-1]:7.3f} deg, pos={pos_err[-1]:7.4f} m | "
@@ -430,6 +503,7 @@ def main():
     for name, avg_time, avg_mem in [
         ("Dead-reckoning", time_dr, mem_dr),
         ("EKF (recursive)", time_ekf, mem_ekf),
+        ("IEKF (invariant)", time_iekf, mem_iekf),
         ("Batch GN", time_gn, mem_gn),
     ]:
         print(f"  {name:<18s} avg time={avg_time * 1e6:9.2f} µs/step | avg peak mem={avg_mem / 1024.0:9.3f} KB/step")
@@ -437,17 +511,18 @@ def main():
     t_hist = np.arange(len(T_true)) * args.dt
     fig, (ax_rot, ax_pos, ax_traj) = plt.subplots(3, 1, figsize=(9, 11))
 
-    for ax, err_dr, err_ekf, err_gn, ylabel in [
-        (ax_rot, rot_err_dr, rot_err_ekf, rot_err_gn, "Rotation error (deg)"),
-        (ax_pos, pos_err_dr, pos_err_ekf, pos_err_gn, "Position error (m)"),
+    for ax, err_dr, err_ekf, err_iekf, err_gn, ylabel in [
+        (ax_rot, rot_err_dr, rot_err_ekf, rot_err_iekf, rot_err_gn, "Rotation error (deg)"),
+        (ax_pos, pos_err_dr, pos_err_ekf, pos_err_iekf, pos_err_gn, "Position error (m)"),
     ]:
         ax.plot(t_hist, err_dr, label="Dead-reckoning (prior only)", color="tab:gray")
         ax.plot(t_hist, err_ekf, label="EKF (recursive)", color="tab:red")
+        ax.plot(t_hist, err_iekf, label="IEKF (invariant)", color="tab:green")
         ax.plot(t_hist, err_gn, label="Batch Gauss-Newton", color="tab:blue")
         ax.set_ylabel(ylabel)
         ax.set_yscale("log")
         ax.legend()
-    ax_rot.set_title("Point-cloud pose tracking: prior-only vs. EKF vs. batch Gauss-Newton")
+    ax_rot.set_title("Point-cloud pose tracking: prior-only vs. EKF vs. invariant EKF vs. batch Gauss-Newton")
     ax_pos.set_xlabel("Time (s)")
 
     def xy(T_list):
@@ -457,6 +532,7 @@ def main():
     ax_traj.plot(*xy(T_true), label="Ground truth", color="black", linewidth=2)
     ax_traj.plot(*xy(T_dr), label="Dead-reckoning (prior only)", color="tab:gray", linestyle="--")
     ax_traj.plot(*xy(T_ekf), label="EKF (recursive)", color="tab:red", linestyle="--")
+    ax_traj.plot(*xy(T_iekf), label="IEKF (invariant)", color="tab:green", linestyle="--")
     ax_traj.plot(*xy(T_gn), label="Batch Gauss-Newton", color="tab:blue", linestyle="--")
     ax_traj.set_xlabel("x (m)")
     ax_traj.set_ylabel("y (m)")

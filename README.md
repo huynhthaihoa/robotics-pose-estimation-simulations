@@ -49,11 +49,12 @@ of the same filename.
 - [pointcloud_pose_tracking.py](use_numpy/pointcloud_pose_tracking.py):
   tracks a rigid object's pose from a motion-model prior (noisy control
   inputs) fused with noisy point-cloud measurements of its known geometry,
-  comparing a recursive **EKF** against a **batch Gauss-Newton** smoother
-  over the whole trajectory, reusing `lie_utils.py`'s SE(3) Exp/Log/
-  inverse-right-Jacobian math plus a hand-rolled adjoint/right-Jacobian for
-  the motion-model Jacobians. Also reports empirical per-step time and peak
-  memory for each of the three approaches.
+  comparing a recursive **EKF**, a recursive **invariant EKF** (body-frame
+  residual, state-independent measurement Jacobian), and a **batch
+  Gauss-Newton** smoother over the whole trajectory, reusing `lie_utils.py`'s
+  SE(3) Exp/Log/inverse-right-Jacobian math plus a hand-rolled adjoint/
+  right-Jacobian for the motion-model Jacobians. Also reports empirical
+  per-step time and peak memory for each of the four approaches.
 - [pose_graph.py](use_numpy/pose_graph.py): a small closed-loop 3D
   pose-graph relaxation (odometry drift + one loop closure), jointly
   optimized via Levenberg-Marquardt, reusing the same `lie_utils.py` SE(3)
@@ -67,7 +68,11 @@ of the same filename.
   preintegration bundle, with the SO(3) Exp map / right Jacobian / skew(hat)
   math delegated to manif's `rplus` Jacobian out-parameters and
   `SO3Tangent.hat()` instead of hand-rolled formulas.
-- [pointcloud_pose_tracking.py](use_manif/pointcloud_pose_tracking.py)
+- [pointcloud_pose_tracking.py](use_manif/pointcloud_pose_tracking.py): same
+  four solvers (dead-reckoning, EKF, invariant EKF, batch Gauss-Newton) as the
+  `use_numpy` version, with `motion_model`/`observation_model` built on
+  `manifpy`'s `rplus`/`rminus`/`act` Jacobian out-parameters instead of
+  `lie_utils.py`.
 - [pose_graph.py](use_manif/pose_graph.py)
 
 ### Root
@@ -156,7 +161,7 @@ uv run python use_numpy/imu_preintegration.py --frequency-hz 100 --gyro-bias 0.0
 - `--linear-vel`, `--angular-vel`: true commanded body-frame twist (default `1.0 0.1 0.0` m/s, `0.0 0.0 0.5` rad/s)
 - `--optimized-gyro-bias`, `--optimized-accel-bias`: post-optimization corrected biases to apply via the Taylor correction
 
-### 4. Point-cloud pose tracking: EKF vs. batch Gauss-Newton
+### 4. Point-cloud pose tracking: EKF vs. invariant EKF vs. batch Gauss-Newton
 
 `use_numpy/pointcloud_pose_tracking.py` / `use_manif/pointcloud_pose_tracking.py`
 
@@ -167,14 +172,20 @@ documented functions — `motion_model` and `observation_model`, both with
 analytical Jacobians (hand-rolled SE(3) Exp/Log/adjoint math via
 `lie_utils.py` in the `use_numpy` version; `manifpy`'s
 `rplus`/`rminus`/`act` out-parameters in the `use_manif` version) — feed
-three solvers: a prior-only dead-reckoning baseline, a recursive **EKF**
-(constant-size state, online), and a **batch Gauss-Newton** smoother that
-jointly optimizes the whole trajectory at once against prior/motion/
-measurement factors. Prints final/RMS rotation+position error per method,
-plus each method's empirical average per-step wall-clock time and peak
-memory (`measure_performance`, via `time.perf_counter` + `tracemalloc`), and
-plots rotation error, position error, and the x-y trajectory of all four
-(ground truth included).
+four solvers: a prior-only dead-reckoning baseline, a recursive **EKF**
+(constant-size state, online), a recursive **invariant EKF** (same predict
+step, but the update expresses the residual in the estimate's body frame,
+making the measurement Jacobian state-independent instead of re-linearized
+around the current rotation every step; for this problem's isotropic
+point-noise model this is provably equivalent to the plain EKF's corrections
+at every step, so the practical win here is a fixed, precomputed Jacobian
+rather than different accuracy), and a **batch
+Gauss-Newton** smoother that jointly optimizes the whole trajectory at once
+against prior/motion/measurement factors. Prints final/RMS rotation+position
+error per method, plus each method's empirical average per-step wall-clock
+time and peak memory (`measure_performance`, via `time.perf_counter` +
+`tracemalloc`), and plots rotation error, position error, and the x-y
+trajectory of all five (ground truth included).
 
 ```
 uv run python use_numpy/pointcloud_pose_tracking.py --duration 5.0 --dt 0.1 --n-points 20 --vel-noise-std 0.05 --gyro-noise-std 0.02 --point-noise-std 0.03 --init-pose-noise-std 0.1 --gn-tol 1e-6 --gn-max-iters 20 --seed 0 --out out.png
