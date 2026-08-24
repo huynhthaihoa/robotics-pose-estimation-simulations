@@ -36,13 +36,44 @@ this codebase.
 '''
 
 import argparse
+import time
+import tracemalloc
 
 import numpy as np
 import matplotlib.pyplot as plt
 
 
+def measure_performance(fn, *args, n_steps, **kwargs):
+    """Runs `fn` once, measuring wall-clock time and peak memory allocated
+    during the call (via tracemalloc), and reports both as per-step averages
+    so the three approaches (different amounts of work per step) are
+    comparable on the same footing.
+    Arguments:
+        fn: callable to run and measure
+        *args, **kwargs: forwarded to fn
+        n_steps: number of trajectory steps, used to normalize both metrics
+    Returns:
+        result: fn(*args, **kwargs)'s return value
+        avg_time_per_step: wall-clock time / n_steps (s)
+        avg_mem_per_step: peak traced memory / n_steps (bytes)
+    """
+    tracemalloc.start()
+    t_start = time.perf_counter()
+    result = fn(*args, **kwargs)
+    elapsed = time.perf_counter() - t_start
+    _, peak_mem = tracemalloc.get_traced_memory()
+    tracemalloc.stop()
+    return result, elapsed / n_steps, peak_mem / n_steps
+
+
 def skew(v):
-    """Returns the 3x3 skew-symmetric matrix of a 3D vector."""
+    """
+    Returns the 3x3 skew-symmetric matrix of a 3D vector.
+    Arguments:
+        v: 3D vector (numpy array)
+    Returns:
+        3x3 skew-symmetric matrix (numpy array)
+    """
     return np.array([
         [0, -v[2], v[1]],
         [v[2], 0, -v[0]],
@@ -51,7 +82,13 @@ def skew(v):
 
 
 def se3_exp(xi):
-    """The Exponential Map for SE(3). Maps a 6-vector [v,omega] to a 4x4 matrix."""
+    """
+    The Exponential Map for SE(3). Maps a 6-vector [v,omega] to a 4x4 matrix.
+    Arguments:
+        xi: 6-vector [v,omega] (numpy array)
+    Returns:
+        4x4 SE(3) transform (numpy array)
+    """
     v = xi[0:3]
     omega = xi[3:6]
     theta = np.linalg.norm(omega)
@@ -73,7 +110,13 @@ def se3_exp(xi):
 
 
 def se3_log(T):
-    """The Logarithmic Map for SE(3). Extracts a 6-vector [v,omega] from a 4x4 matrix."""
+    """
+    The Logarithmic Map for SE(3). Extracts a 6-vector [v,omega] from a 4x4 matrix.
+    Arguments:
+        T: 4x4 SE(3) transform (numpy array)
+    Returns:
+        6-vector [v,omega] (numpy array)
+    """
     R = T[0:3, 0:3]
     t = T[0:3, 3]
     I3 = np.eye(3)
@@ -98,7 +141,13 @@ def se3_log(T):
 
 
 def se3_inv(T):
-    """Rigid inverse of a 4x4 SE(3) transform."""
+    """
+    Rigid inverse of a 4x4 SE(3) transform.
+    Arguments:
+        T: 4x4 SE(3) transform (numpy array)
+    Returns:
+        4x4 inverted SE(3) transform (numpy array)
+    """
     R, t = T[0:3, 0:3], T[0:3, 3]
     T_inv = np.eye(4)
     T_inv[0:3, 0:3] = R.T
@@ -107,8 +156,13 @@ def se3_inv(T):
 
 
 def se3_adjoint(T):
-    """The 6x6 SE(3) adjoint, block form [[R, skew(t)@R],[0, R]] for the
+    """
+    The 6x6 SE(3) adjoint, block form [[R, skew(t)@R],[0, R]] for the
     [v,omega]-ordered tangent convention used throughout this codebase.
+    Arguments:
+        T: 4x4 SE(3) transform (numpy array)
+    Returns:
+        6x6 SE(3) adjoint (numpy array)
     """
     R, t = T[0:3, 0:3], T[0:3, 3]
     Adj = np.zeros((6, 6))
@@ -119,7 +173,13 @@ def se3_adjoint(T):
 
 
 def compute_so3_inv_right_jacobian(theta_vec):
-    """Computes the 3x3 inverse right Jacobian of SO(3)."""
+    """
+    Computes the 3x3 inverse right Jacobian of SO(3).
+    Arguments:
+        theta_vec: 3D vector (numpy array)
+    Returns:
+        3x3 inverse right Jacobian (numpy array)
+    """
     theta = np.linalg.norm(theta_vec)
     I3 = np.eye(3)
     if theta < 1e-6:
@@ -131,7 +191,13 @@ def compute_so3_inv_right_jacobian(theta_vec):
 
 
 def compute_se3_inv_right_jacobian(error_vector):
-    """Computes the 6x6 analytical inverse right Jacobian for an SE(3) error vector."""
+    """
+    Computes the 6x6 analytical inverse right Jacobian for an SE(3) error vector.
+    Arguments:
+        error_vector: 6-vector [rho, theta_vec] (numpy array)
+    Returns:
+        6x6 inverse right Jacobian (numpy array)
+    """
     rho = error_vector[0:3]
     theta_vec = error_vector[3:6]
     theta = np.linalg.norm(theta_vec)
@@ -164,14 +230,26 @@ def compute_se3_inv_right_jacobian(error_vector):
 
 
 def se3_right_jacobian(xi):
-    """The direct (non-inverse) SE(3) right Jacobian Jr(xi), obtained by inverting
+    """
+    The direct (non-inverse) SE(3) right Jacobian Jr(xi), obtained by inverting
     the closed-form Jr_inv(xi) above rather than re-deriving a second formula.
+    Arguments:
+        xi: 6-vector [v,omega] (numpy array)
+    Returns:
+        6x6 SE(3) right Jacobian (numpy array)
     """
     return np.linalg.inv(compute_se3_inv_right_jacobian(xi))
 
 
 def rotation_geodesic_error(R_a, R_b):
-    """Angle (rad) of the relative rotation between two rotation matrices."""
+    """
+    Angle (rad) of the relative rotation between two rotation matrices.
+    Arguments:
+        R_a: first rotation matrix (numpy array)
+        R_b: second rotation matrix (numpy array)
+    Returns:
+        angle: angle (rad) of the relative rotation
+    """
     c = (np.trace(R_a.T @ R_b) - 1.0) / 2.0
     return np.arccos(np.clip(c, -1.0, 1.0))
 
@@ -506,15 +584,21 @@ def main():
     ]))
     Q_tangent = args.dt ** 2 * Q_rate
 
+    n_steps = len(u_meas)
+
     print("Running dead-reckoning baseline (motion model only, no point-cloud correction)...")
-    T_dr = run_dead_reckoning(T_init, u_meas, args.dt)
+    T_dr, time_dr, mem_dr = measure_performance(
+        run_dead_reckoning, T_init, u_meas, args.dt, n_steps=n_steps)
 
     print("Running recursive EKF (motion-model predict + point-cloud observation-model update)...")
-    T_ekf = run_ekf(T_init, P_init, u_meas, z, body_points, args.dt, Q_tangent, args.point_noise_std)
+    T_ekf, time_ekf, mem_ekf = measure_performance(
+        run_ekf, T_init, P_init, u_meas, z, body_points, args.dt, Q_tangent, args.point_noise_std,
+        n_steps=n_steps)
 
     print("Running batch Gauss-Newton (joint optimization over the whole trajectory)...")
-    T_gn = run_batch_gn(T_dr, T_init, P_init, u_meas, z, body_points, args.dt, Q_tangent,
-                         args.point_noise_std, args.gn_tol, args.gn_max_iters)
+    T_gn, time_gn, mem_gn = measure_performance(
+        run_batch_gn, T_dr, T_init, P_init, u_meas, z, body_points, args.dt, Q_tangent,
+        args.point_noise_std, args.gn_tol, args.gn_max_iters, n_steps=n_steps)
 
     rot_err_dr, pos_err_dr = pose_errors(T_true, T_dr)
     rot_err_ekf, pos_err_ekf = pose_errors(T_true, T_ekf)
@@ -528,6 +612,14 @@ def main():
     ]:
         print(f"  {name:<18s} final rot={rot_err[-1]:7.3f} deg, pos={pos_err[-1]:7.4f} m | "
               f"RMS rot={np.sqrt(np.mean(rot_err**2)):7.3f} deg, pos={np.sqrt(np.mean(pos_err**2)):7.4f} m")
+
+    print("\nAverage time complexity + space complexity per approach (per-step, empirical):")
+    for name, avg_time, avg_mem in [
+        ("Dead-reckoning", time_dr, mem_dr),
+        ("EKF (recursive)", time_ekf, mem_ekf),
+        ("Batch GN", time_gn, mem_gn),
+    ]:
+        print(f"  {name:<18s} avg time={avg_time * 1e6:9.2f} µs/step | avg peak mem={avg_mem / 1024.0:9.3f} KB/step")
 
     t_hist = np.arange(len(T_true)) * args.dt
     fig, (ax_rot, ax_pos, ax_traj) = plt.subplots(3, 1, figsize=(9, 11))

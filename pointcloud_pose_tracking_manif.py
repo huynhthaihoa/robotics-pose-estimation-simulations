@@ -31,10 +31,34 @@ doubles as the batch solver's initial guess.
 '''
 
 import argparse
+import time
+import tracemalloc
 
 import numpy as np
 import matplotlib.pyplot as plt
 import manifpy as manif
+
+def measure_performance(fn, *args, n_steps, **kwargs):
+    """Runs `fn` once, measuring wall-clock time and peak memory allocated
+    during the call (via tracemalloc), and reports both as per-step averages
+    so the three approaches (different amounts of work per step) are
+    comparable on the same footing.
+    Arguments:
+        fn: callable to run and measure
+        *args, **kwargs: forwarded to fn
+        n_steps: number of trajectory steps, used to normalize both metrics
+    Returns:
+        result: fn(*args, **kwargs)'s return value
+        avg_time_per_step: wall-clock time / n_steps (s)
+        avg_mem_per_step: peak traced memory / n_steps (bytes)
+    """
+    tracemalloc.start()
+    t_start = time.perf_counter()
+    result = fn(*args, **kwargs)
+    elapsed = time.perf_counter() - t_start
+    _, peak_mem = tracemalloc.get_traced_memory()
+    tracemalloc.stop()
+    return result, elapsed / n_steps, peak_mem / n_steps
 
 
 def true_body_rates(t):
@@ -367,15 +391,21 @@ def main():
     ]))
     Q_tangent = args.dt ** 2 * Q_rate
 
+    n_steps = len(u_meas)
+
     print("Running dead-reckoning baseline (motion model only, no point-cloud correction)...")
-    T_dr = run_dead_reckoning(T_init, u_meas, args.dt)
+    T_dr, time_dr, mem_dr = measure_performance(
+        run_dead_reckoning, T_init, u_meas, args.dt, n_steps=n_steps)
 
     print("Running recursive EKF (motion-model predict + point-cloud observation-model update)...")
-    T_ekf = run_ekf(T_init, P_init, u_meas, z, body_points, args.dt, Q_tangent, args.point_noise_std)
+    T_ekf, time_ekf, mem_ekf = measure_performance(
+        run_ekf, T_init, P_init, u_meas, z, body_points, args.dt, Q_tangent, args.point_noise_std,
+        n_steps=n_steps)
 
     print("Running batch Gauss-Newton (joint optimization over the whole trajectory)...")
-    T_gn = run_batch_gn(T_dr, T_init, P_init, u_meas, z, body_points, args.dt, Q_tangent,
-                         args.point_noise_std, args.gn_tol, args.gn_max_iters)
+    T_gn, time_gn, mem_gn = measure_performance(
+        run_batch_gn, T_dr, T_init, P_init, u_meas, z, body_points, args.dt, Q_tangent,
+        args.point_noise_std, args.gn_tol, args.gn_max_iters, n_steps=n_steps)
 
     rot_err_dr, pos_err_dr = pose_errors(T_true, T_dr)
     rot_err_ekf, pos_err_ekf = pose_errors(T_true, T_ekf)
@@ -389,6 +419,14 @@ def main():
     ]:
         print(f"  {name:<18s} final rot={rot_err[-1]:7.3f} deg, pos={pos_err[-1]:7.4f} m | "
               f"RMS rot={np.sqrt(np.mean(rot_err**2)):7.3f} deg, pos={np.sqrt(np.mean(pos_err**2)):7.4f} m")
+
+    print("\nAverage time complexity + space complexity per approach (per-step, empirical):")
+    for name, avg_time, avg_mem in [
+        ("Dead-reckoning", time_dr, mem_dr),
+        ("EKF (recursive)", time_ekf, mem_ekf),
+        ("Batch GN", time_gn, mem_gn),
+    ]:
+        print(f"  {name:<18s} avg time={avg_time * 1e6:9.2f} µs/step | avg peak mem={avg_mem / 1024.0:9.3f} KB/step")
 
     t_hist = np.arange(len(T_true)) * args.dt
     fig, (ax_rot, ax_pos, ax_traj) = plt.subplots(3, 1, figsize=(9, 11))
