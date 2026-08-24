@@ -30,12 +30,9 @@ Two ways to run the measurement update:
 
 ## Intuitive explanation
 
-Both filters are answering the same question — "how far off is my predicted
-point cloud from what I actually measured, and what pose correction explains
-that gap?" — they just *describe* the mismatch in different coordinate
-systems. EKF reports it in world coordinates ("2cm too far east"); IEKF
-reports the same physical mismatch in the object's own coordinates ("2.2cm
-too far toward the object's nose").
+Both filters are answering the same question — "how far off is my predicted point cloud from what I actually measured, and what pose correction explains that gap?" — they just *describe* the mismatch in different coordinate systems:
+ - **EKF** reports it in world coordinates ("2cm too far east"); 
+ - **IEKF** reports the same physical mismatch in the object's own coordinates ("2.2cm too far toward the object's nose").
 
 Converting between the two is just applying the current rotation estimate —
 a rigid relabeling of axes that doesn't stretch or distort anything. As long
@@ -55,10 +52,11 @@ sigma^2 I` for any rotation `R`).
 
 ## The algebra (for the curious)
 
-Per point `p_i`:
+Per point $p_i$:
 
 ```
 r_body_i = T_pred^-1.act(z_i) - p_i = R_pred.T @ (z_i - T_pred.act(p_i)) = R_pred.T @ r_world_i
+
 H_world  = R_pred @ H_body
 ```
 
