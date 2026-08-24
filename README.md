@@ -43,6 +43,12 @@ Two implementation styles run side by side for the core comparison scripts:
   adjoint/right-Jacobian for the motion-model Jacobians.
 - [pointcloud_pose_tracking_manif.py](pointcloud_pose_tracking_manif.py): the
   same tracker, on `manifpy`.
+- [pose_graph.py](pose_graph.py): a small closed-loop 3D pose-graph
+  relaxation (odometry drift + one loop closure), jointly optimized via
+  Levenberg-Marquardt — plain numpy, reusing the same hand-rolled SE(3)
+  Exp/Log/inverse-right-Jacobian/adjoint math as `pointcloud_pose_tracking.py`.
+- [pose_graph_manif.py](pose_graph_manif.py): the same relaxation, on
+  `manifpy`'s `compose`/`rminus` Jacobians.
 - [main.py](main.py): unused `uv init` placeholder entry point.
 - [pyproject.toml](pyproject.toml): uv project file. `manifpy` is sourced
   from the local sibling checkout `../manif` (see Installation below).
@@ -55,8 +61,8 @@ Two implementation styles run side by side for the core comparison scripts:
   Python bindings built (`pip3 install --user ../manif`, requires a working
   Eigen3 + CMake toolchain) before `uv sync` can resolve it. The
   plain-numpy scripts (`imu_integration_comparison.py`,
-  `robot_imu_simulation.py`, `simulation2.py`, `pointcloud_pose_tracking.py`)
-  don't need this.
+  `robot_imu_simulation.py`, `simulation2.py`, `pointcloud_pose_tracking.py`,
+  `pose_graph.py`) don't need this.
 - Then sync dependencies: `uv sync`
 - Run any script with `uv run`, e.g.: `uv run python imu_integration_comparison.py`
 
@@ -157,5 +163,37 @@ uv run python pointcloud_pose_tracking.py --duration 5.0 --dt 0.1 --n-points 20 
 - `--init-pose-noise-std`: std-dev used to perturb the initial pose guess, and to set the prior/EKF-init covariance (default `0.1`)
 - `--gn-tol`: batch Gauss-Newton convergence tolerance (default `1e-6`)
 - `--gn-max-iters`: maximum batch Gauss-Newton iterations (default `20`)
+- `--seed`: RNG seed (default `0`)
+- `--out`: save the figure to this path instead of showing it (default: show)
+
+### 5. 3D pose-graph relaxation
+
+`pose_graph.py` / `pose_graph_manif.py`
+
+A robot drives a closed 4-node square loop, accumulating drift from noisy
+relative-pose ("odometry") edges between consecutive nodes, then detects it
+has returned to the start and adds one loop-closure edge back to node 0. All
+node poses are jointly refined by Levenberg-Marquardt against every edge's
+residual `e_ij = Log(Z_ij^-1 * X_i^-1 * X_j)`, using analytical
+`compose`/`rminus` Jacobians chained together (hand-rolled SE(3) Exp/Log/
+adjoint math in the plain numpy version; `manifpy`'s out-parameters in the
+`_manif` version) — the same motion-factor Jacobian-chaining pattern as
+`run_batch_gn` in `pointcloud_pose_tracking.py`, generalized from a
+twist-based motion model to a directly-measured relative pose. Prints
+per-iteration chi-squared error plus final/RMS rotation+position error
+(uncorrected odometry vs. optimized), and plots the XY trajectory against
+ground truth.
+
+```
+uv run python pose_graph.py --side-length 2.0 --pos-noise-std 0.05 --rot-noise-std 0.01 --loop-noise-scale 0.5 --damping 0.01 --gn-tol 1e-6 --gn-max-iters 10 --seed 0 --out out.png
+```
+
+- `--side-length`: side length of the square ground-truth loop, m (default `2.0`)
+- `--pos-noise-std`: odometry-edge translation noise std-dev, m (default `0.05`)
+- `--rot-noise-std`: odometry-edge rotation noise std-dev, rad (default `0.01`)
+- `--loop-noise-scale`: noise std-dev multiplier for the loop-closure edge (default `0.5`)
+- `--damping`: Levenberg-Marquardt damping factor (default `0.01`)
+- `--gn-tol`: convergence tolerance on the correction step norm (default `1e-6`)
+- `--gn-max-iters`: maximum optimization iterations (default `10`)
 - `--seed`: RNG seed (default `0`)
 - `--out`: save the figure to this path instead of showing it (default: show)
