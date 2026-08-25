@@ -25,7 +25,7 @@ And then there are variants dealing with **noise, time, robustness, and computat
 
 ---
 
-# 1. Unscented Kalman Filter (UKF) ⭐
+## 1. Unscented Kalman Filter (UKF) ⭐
 
 This is probably the **most important variant to learn after EKF**.
 
@@ -85,7 +85,7 @@ But it can be computationally more expensive than EKF, especially for high-dimen
 
 ---
 
-# 2. Error-State Kalman Filter (ESKF) ⭐⭐⭐
+## 2. Error-State Kalman Filter (ESKF) ⭐⭐⭐
 
 For **your SLAM/VIO direction**, I'd put this very high on the list.
 
@@ -132,7 +132,7 @@ IEKF is essentially taking the idea of defining the estimation error carefully a
 
 ---
 
-# 3. Unscented vs Extended: a useful comparison
+## 3. Unscented vs Extended: a useful comparison
 
 |                             | EKF                 | UKF                         |
 | --------------------------- | ------------------- | --------------------------- |
@@ -152,7 +152,7 @@ before spending too much time on UKF.
 
 ---
 
-# 4. Invariant EKF (IEKF) ⭐⭐⭐
+## 4. Invariant EKF (IEKF) ⭐⭐⭐
 
 We already discussed this one, but it's worth putting it into the broader family.
 
@@ -187,7 +187,7 @@ This is particularly relevant to:
 
 ---
 
-# 5. Square-Root Kalman Filter (SR-KF)
+## 5. Square-Root Kalman Filter (SR-KF)
 
 This one is less about changing the **estimation philosophy** and more about improving **numerical stability**.
 
@@ -226,7 +226,7 @@ This becomes particularly interesting in **large-scale estimation** and systems 
 
 ---
 
-# 6. Ensemble Kalman Filter (EnKF)
+## 6. Ensemble Kalman Filter (EnKF)
 
 This is quite different.
 
@@ -260,7 +260,7 @@ It's generally **less central to robotics/SLAM** than EKF/ESKF/IEKF.
 
 ---
 
-# 7. Adaptive Kalman Filter
+## 7. Adaptive Kalman Filter
 
 Normally you assume:
 
@@ -285,7 +285,7 @@ This is useful when the environment or sensor quality changes over time.
 
 ---
 
-# 8. Robust Kalman Filter
+## 8. Robust Kalman Filter
 
 Standard KF essentially assumes:
 
@@ -320,7 +320,7 @@ Although in robotics, robust losses such as **Huber loss** are also commonly use
 
 ---
 
-# 9. Kalman Smoother
+## 9. Kalman Smoother
 
 This isn't exactly another KF variant, but it's important enough to know.
 
@@ -361,7 +361,7 @@ This is very important for **offline SLAM and trajectory estimation**.
 
 ---
 
-# 10. Multi-rate / asynchronous Kalman filtering
+## 10. Multi-rate / asynchronous Kalman filtering
 
 This one is particularly practical for robotics.
 
@@ -397,7 +397,7 @@ This is one of the fundamental patterns behind real-time sensor fusion.
 
 ---
 
-# So which ones should YOU learn?
+## So which ones should YOU learn?
 
 Given your background in **computer vision, SLAM, embedded systems, and your upcoming research on resource-constrained robots**, I wouldn't try to learn every Kalman variant equally.
 
@@ -482,7 +482,7 @@ Mostly important in high-dimensional scientific applications.
 
 ---
 
-# And there's one more important distinction for SLAM
+## And there's one more important distinction for SLAM
 
 Once you get into modern robotics, you'll encounter two big families:
 
