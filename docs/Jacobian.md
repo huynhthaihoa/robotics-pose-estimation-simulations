@@ -38,17 +38,7 @@ For a function with **one input and one output**, we call this a derivative.
 
 Suppose:
 
-$${\begin{bmatrix}
-y_1 \\
-y_2
-\end{bmatrix}
-=
-f\left(
-\begin{bmatrix}
-x_1 \\
-x_2
-\end{bmatrix}
-\right)}$$
+$${\begin{bmatrix}y_1 \\ y_2 \end{bmatrix}=f\left(\begin{bmatrix}x_1 \\x_2\end{bmatrix}\right)}$$
 
 Now we have:
 
@@ -79,16 +69,10 @@ $${\frac{\partial y_1}{\partial x_1} = 1 \qquad \frac{\partial y_1}{\partial x_2
 
 So we put all those derivatives into a matrix:
 
-$${J =
-\begin{bmatrix}
-\frac{\partial y_1}{\partial x_1} & \frac{\partial y_1}{\partial x_2} \\
-\frac{\partial y_2}{\partial x_1} & \frac{\partial y_2}{\partial x_2}
-\end{bmatrix}
-=
-\begin{bmatrix}
-1 & 2x_2 \\
-x_2 & x_1
-\end{bmatrix}}$$
+$${J =\begin{bmatrix}\frac{\partial y_1}{\partial x_1} & \frac{\partial y_1}{\partial x_2} \\ 
+\frac{\partial y_2}{\partial x_1} & \frac{\partial y_2}{\partial x_2} \\
+\end{bmatrix} = \begin{bmatrix}1 & 2x_2 \\
+x_2 & x_1\end{bmatrix}}$$
 
 That's the **Jacobian**. Notice the convention: each **row** is one output ($y_i$), each **column** is one input ($x_j$) — $J_{ij} = \partial y_i/\partial x_j$.
 
