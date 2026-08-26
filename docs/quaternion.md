@@ -305,26 +305,22 @@ can be represented as:
 
 - **Euler**
 
-$$
-(roll,pitch,yaw)=(0,0,90^\circ)
-$$
+$${(roll,pitch,yaw)=(0,0,90^\circ)}$$
 
 - **Rotation matrix**
 
 $$
-R=
+{R=
 \begin{bmatrix}
 0&-1&0\\
 1&0&0\\
 0&0&1
-\end{bmatrix}
+\end{bmatrix}}
 $$
 
 - **Quaternion**
 
-$$
-q=(0.707,0,0,0.707)
-$$
+$${q=(0.707,0,0,0.707)}$$
 
 Same physical rotation. Different mathematical representation.
 
