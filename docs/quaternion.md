@@ -342,16 +342,14 @@ This is actually where quaternions become especially relevant.
 
 In an EKF, you might have a state like
 
-$$
-\mathbf{x}=
+$${\mathbf{x}=
 \begin{bmatrix}
 p\\
 v\\
 q\\
 b_g\\
 b_a
-\end{bmatrix}
-$$
+\end{bmatrix}}$$
 
 where:
 
@@ -369,11 +367,7 @@ It lives on the **unit quaternion manifold**, which represents rotations.
 
 That's why modern VIO/SLAM systems often use a **small 3D orientation error** rather than directly adding a 4D quaternion error:
 
-$$
-q_{\text{true}}
-=
-\delta q\otimes q_{\text{estimate}}
-$$
+$${q_{\text{true}} = \delta q\otimes q_{\text{estimate}}}$$
 
 where $\delta q$ represents a **small 3D rotational error**.
 
@@ -389,7 +383,7 @@ If you remember only one thing:
 
 And for your robotics work, I'd mentally organize it as:
 
-$$
+$${
 \boxed{
 \text{Euler angles}
 \rightarrow
@@ -400,6 +394,7 @@ SO(3)
 \mathfrak{so}(3)
 \rightarrow
 \text{Lie-group state estimation}
+}
 }
 $$
 
