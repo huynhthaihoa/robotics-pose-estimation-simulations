@@ -179,8 +179,7 @@ $${J =
 \frac{\partial u}{\partial X} & \frac{\partial u}{\partial Y} & \frac{\partial u}{\partial Z} \\
 \frac{\partial v}{\partial X} & \frac{\partial v}{\partial Y} & \frac{\partial v}{\partial Z}
 \end{bmatrix}
-=
-\begin{bmatrix}
+=\begin{bmatrix}
 f/Z & 0 & -fX/Z^2 \\
 0 & f/Z & -fY/Z^2
 \end{bmatrix}}$$
