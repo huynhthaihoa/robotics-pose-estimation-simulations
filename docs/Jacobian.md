@@ -38,8 +38,7 @@ For a function with **one input and one output**, we call this a derivative.
 
 Suppose:
 
-$$
-\begin{bmatrix}
+$${\begin{bmatrix}
 y_1 \\
 y_2
 \end{bmatrix}
@@ -49,8 +48,7 @@ f\left(
 x_1 \\
 x_2
 \end{bmatrix}
-\right)
-$$
+\right)}$$
 
 Now we have:
 
@@ -81,7 +79,7 @@ $$\frac{\partial y_1}{\partial x_1} = 1 \qquad \frac{\partial y_1}{\partial x_2}
 
 So we put all those derivatives into a matrix:
 
-$$
+$${
 J =
 \begin{bmatrix}
 \frac{\partial y_1}{\partial x_1} & \frac{\partial y_1}{\partial x_2} \\
@@ -91,8 +89,7 @@ J =
 \begin{bmatrix}
 1 & 2x_2 \\
 x_2 & x_1
-\end{bmatrix}
-$$
+\end{bmatrix}}$$
 
 That's the **Jacobian**. Notice the convention: each **row** is one output ($y_i$), each **column** is one input ($x_j$) — $J_{ij} = \partial y_i/\partial x_j$.
 
@@ -104,24 +101,20 @@ This is probably the most useful intuition.
 
 Suppose your robot's state is:
 
-$$
-p =
+$${p =
 \begin{bmatrix}
 x \\
 y \\
 \theta
-\end{bmatrix}
-$$
+\end{bmatrix}}$$
 
 and your camera produces some measurement:
 
-$$
-z =
+$${z =
 \begin{bmatrix}
 u \\
 v
-\end{bmatrix}
-$$
+\end{bmatrix}}$$
 
 The Jacobian might look like:
 
@@ -173,7 +166,7 @@ Meaning:
 
 And:
 
-$$\frac{\partial u}{\partial Z} = -\frac{fX}{Z^2}$$
+$${\frac{\partial u}{\partial Z} = -\frac{fX}{Z^2}}$$
 
 Meaning:
 
@@ -181,8 +174,7 @@ Meaning:
 
 Putting every partial derivative together gives the full Jacobian:
 
-$$
-J =
+$${J =
 \begin{bmatrix}
 \frac{\partial u}{\partial X} & \frac{\partial u}{\partial Y} & \frac{\partial u}{\partial Z} \\
 \frac{\partial v}{\partial X} & \frac{\partial v}{\partial Y} & \frac{\partial v}{\partial Z}
@@ -191,8 +183,7 @@ J =
 \begin{bmatrix}
 f/Z & 0 & -fX/Z^2 \\
 0 & f/Z & -fY/Z^2
-\end{bmatrix}
-$$
+\end{bmatrix}}$$
 
 Notice the zeros: $\partial u/\partial Y = 0$ and $\partial v/\partial X = 0$, because horizontal image position ($u$) doesn't depend on vertical 3D position ($Y$) at all, and vice versa for $v$ and $X$. This is the actual Jacobian a visual-SLAM or bundle-adjustment system would compute at every reprojected point.
 
