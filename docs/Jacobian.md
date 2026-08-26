@@ -71,16 +71,15 @@ We want to know:
 
 To make this concrete, suppose:
 
-$$y_1 = x_1 + x_2^2 \qquad y_2 = x_1 x_2$$
+$${y_1 = x_1 + x_2^2 \qquad y_2 = x_1 x_2}$$
 
 Then:
 
-$$\frac{\partial y_1}{\partial x_1} = 1 \qquad \frac{\partial y_1}{\partial x_2} = 2x_2 \qquad \frac{\partial y_2}{\partial x_1} = x_2 \qquad \frac{\partial y_2}{\partial x_2} = x_1$$
+$${\frac{\partial y_1}{\partial x_1} = 1 \qquad \frac{\partial y_1}{\partial x_2} = 2x_2 \qquad \frac{\partial y_2}{\partial x_1} = x_2 \qquad \frac{\partial y_2}{\partial x_2} = x_1}$$
 
 So we put all those derivatives into a matrix:
 
-$${
-J =
+$${J =
 \begin{bmatrix}
 \frac{\partial y_1}{\partial x_1} & \frac{\partial y_1}{\partial x_2} \\
 \frac{\partial y_2}{\partial x_1} & \frac{\partial y_2}{\partial x_2}
