@@ -197,7 +197,7 @@ $$
 
 where $R$ is the robot's orientation.
 
-You can represent $R$ as a rotation matrix ($R \in SO(3)$), but that's **9 numbers**.
+You can represent $R$ as a rotation matrix (${R \in SO(3)}$), but that's **9 numbers**.
 
 A quaternion only needs $q = (w,x,y,z)$ with the unit constraint.
 
@@ -205,11 +205,7 @@ So quaternions give you a compact representation of rotation.
 
 More importantly, composing rotations becomes quaternion multiplication:
 
-$$
-q_{\text{new}}
-=
-q_{\text{old}}\otimes\Delta q
-$$
+$${q_{\text{new}}=q_{\text{old}}\otimes\Delta q}$$
 
 Conceptually:
 
