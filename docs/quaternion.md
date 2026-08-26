@@ -299,34 +299,32 @@ Think of them as **different languages describing the same orientation**.
 
 For example:
 
-$$
-\text{90° around Z}
-$$
+$${\text{90° around Z}}$$
 
 can be represented as:
 
-**Euler**
+- **Euler**
 
-$$
-(roll,pitch,yaw)=(0,0,90^\circ)
-$$
+    $$
+    (roll,pitch,yaw)=(0,0,90^\circ)
+    $$
 
-**Rotation matrix**
+- **Rotation matrix**
 
-$$
-R=
-\begin{bmatrix}
-0&-1&0\\
-1&0&0\\
-0&0&1
-\end{bmatrix}
-$$
+    $$
+    R=
+    \begin{bmatrix}
+    0&-1&0\\
+    1&0&0\\
+    0&0&1
+    \end{bmatrix}
+    $$
 
-**Quaternion**
+- **Quaternion**
 
-$$
-q=(0.707,0,0,0.707)
-$$
+    $$
+    q=(0.707,0,0,0.707)
+    $$
 
 Same physical rotation. Different mathematical representation.
 
