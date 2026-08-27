@@ -3,16 +3,14 @@
 ## Introduction
 
 A collection of from-scratch simulations exploring pose/state estimation on
-manifolds: how orientation and pose should be integrated and corrected on
-**SO(3)**/**SE(3)** rather than treated as flat vectors, and how a **prior**
-(a motion model driven by noisy control/odometry inputs) can be fused with
-**measurements** either **recursively** (Kalman filtering) or in **batch**
-(Gauss-Newton optimization).
+manifolds: 
+ - How orientation and pose should be integrated and corrected on $SO(3)$ / $SE(3)$ rather than treated as flat vectors
+ - How a **prior** (a motion model driven by noisy control/odometry inputs) can be fused with **measurements** either **recursively** (Kalman filtering) or in **batch** (Gauss-Newton optimization).
 
 Two implementation styles run side by side for the core comparison scripts,
 split into sibling directories with matching filenames:
 - [use_numpy/](use_numpy/): skew-symmetric matrices, `Exp`/`Log` maps, and
-  Jacobians written out by hand (Rodrigues' formula, the SE(3)
+  Jacobians written out by hand (Rodrigues' formula, the $SE(3)$
   exponential/logarithm, the analytical inverse right Jacobian), shared
   across scripts via [use_numpy/lie_utils.py](use_numpy/lie_utils.py).
 - [use_manif/](use_manif/): the same math delegated to the
