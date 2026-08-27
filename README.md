@@ -9,14 +9,8 @@ manifolds:
 
 Two implementation styles run side by side for the core comparison scripts,
 split into sibling directories with matching filenames:
-- [use_numpy/](use_numpy/): skew-symmetric matrices, `Exp`/`Log` maps, and
-  Jacobians written out by hand (Rodrigues' formula, the $SE(3)$
-  exponential/logarithm, the analytical inverse right Jacobian), shared
-  across scripts via [use_numpy/lie_utils.py](use_numpy/lie_utils.py).
-- [use_manif/](use_manif/): the same math delegated to the
-  [`manif`](https://github.com/artivis/manif) Lie-theory library's Python
-  bindings (`T.rplus`, `T.rminus`, `T.act`, all with analytical Jacobians
-  returned as out-parameters), so no manifold formula is hand-rolled.
+- [use_numpy/](use_numpy/): skew-symmetric matrices, $Exp$ / $Log$ maps, and Jacobians written out by hand (Rodrigues' formula, the $SE(3)$ exponential/logarithm, the analytical inverse right Jacobian), shared across scripts via [use_numpy/lie_utils.py](use_numpy/lie_utils.py).
+- [use_manif/](use_manif/): the same math delegated to the [`manif`](https://github.com/artivis/manif) Lie-theory library's Python bindings (`T.rplus`, `T.rminus`, `T.act`, all with analytical Jacobians returned as out-parameters), so no manifold formula is hand-rolled.
 
 Each `use_manif/<name>.py` is the manifpy counterpart of `use_numpy/<name>.py`
 of the same filename.
@@ -34,16 +28,14 @@ of the same filename.
   `robot_imu_simulation.py` still keeps its own inline copies of the
   skew/Jacobian helpers and hasn't been migrated to import from here yet.
 - [imu_integration_comparison.py](use_numpy/imu_integration_comparison.py):
-  naive Euler-angle vs. SO(3) exp-map orientation integration.
+  naive Euler-angle vs. $SO(3)$ exp-map orientation integration.
 - [robot_imu_simulation.py](use_numpy/robot_imu_simulation.py): high-rate
   IMU propagation + a low-rate Gauss-Newton pose correction (à la a GPS fix),
-  with the full SE(3) Exp/Log/inverse-right-Jacobian math written from
+  with the full $SE(3)$ $Exp$ / $Log$ / inverse-right-Jacobian math written from
   scratch inline.
 - [imu_preintegration.py](use_numpy/imu_preintegration.py): IMU
   pre-integration — compresses a burst of high-frequency IMU samples into
-  one relative measurement plus first-order bias Jacobians, then shows an
-  instant Taylor-expansion correction when the bias estimate changes,
-  without re-integrating.
+  one relative measurement plus first-order bias Jacobians, then shows an instant Taylor-expansion correction when the bias estimate changes, without re-integrating.
 - [pointcloud_pose_tracking.py](use_numpy/pointcloud_pose_tracking.py):
   tracks a rigid object's pose from a motion-model prior (noisy control
   inputs) fused with noisy point-cloud measurements of its known geometry,
@@ -137,7 +129,7 @@ uv run python use_numpy/imu_integration_comparison.py --duration 20.0 --dt 0.005
 
 Simulates a robot with a 100 Hz IMU (noisy body twist) and a 1 Hz
 high-accuracy global position fix (e.g. GPS). Each second: propagate the
-pose estimate through 100 noisy IMU micro-steps on SE(3), then run a
+pose estimate through 100 noisy IMU micro-steps on $SE(3)$, then run a
 Gauss-Newton correction against the position fix (an unbalanced information
 matrix trusts position far more than orientation) until the correction step
 norm drops below `--gn-tol` or `--gn-max-iters` is hit. Prints pre/post
@@ -178,7 +170,7 @@ uv run python use_numpy/imu_preintegration.py --frequency-hz 100 --gyro-bias 0.0
 
 `use_numpy/pointcloud_pose_tracking.py` / `use_manif/pointcloud_pose_tracking.py`
 
-Tracks a rigid object's SE(3) pose from a combination of a motion-model
+Tracks a rigid object's $SE(3)$ pose from a combination of a motion-model
 prior (noisy control-input twist) and noisy point-cloud measurements of the
 object's known body-frame geometry (`z_i = T.act(p_i) + noise`). Two shared,
 documented functions — `motion_model` and `observation_model`, both with
@@ -224,12 +216,10 @@ A robot drives a closed 4-node square loop, accumulating drift from noisy
 relative-pose ("odometry") edges between consecutive nodes, then detects it
 has returned to the start and adds one loop-closure edge back to node 0. All
 node poses are jointly refined by Levenberg-Marquardt against every edge's
-residual `e_ij = Log(Z_ij^-1 * X_i^-1 * X_j)`, using analytical
-`compose`/`rminus` Jacobians chained together (hand-rolled SE(3) Exp/Log/
-adjoint math via `lie_utils.py` in the `use_numpy` version; `manifpy`'s
+residual ${e_{ij} = \log({Z_{ij}}^{-1} * {X_i}^{-1} * X_j)}$, using analytical
+`compose`/`rminus` Jacobians chained together (hand-rolled $SE(3)$ $Exp$ / $Log$ / adjoint math via `lie_utils.py` in the `use_numpy` version; `manifpy`'s
 out-parameters in the `use_manif` version) — the same motion-factor
-Jacobian-chaining pattern as `run_batch_gn` in `pointcloud_pose_tracking.py`,
-generalized from a twist-based motion model to a directly-measured relative
+Jacobian-chaining pattern as `run_batch_gn` in `pointcloud_pose_tracking.py`, generalized from a twist-based motion model to a directly-measured relative
 pose. Prints per-iteration chi-squared error plus final/RMS rotation+position
 error (uncorrected odometry vs. optimized), and plots the XY trajectory
 against ground truth.
@@ -257,7 +247,7 @@ uv run python use_numpy/pose_graph.py --side-length 2.0 --pos-noise-std 0.05 --r
 camera field-of-view cutoff means not every camera observes every landmark
 (landmarks seen by fewer than `--min-observations` cameras are dropped as
 not triangulable) — this is `docs/bundle_adjustment.md`'s observed set
-`\mathcal{O}`, a real strict subset of all camera-landmark pairs, not "every
+${\mathcal{O}}$, a real strict subset of all camera-landmark pairs, not "every
 camera sees everything." Every camera pose and every landmark is perturbed
 from ground truth to build a noisy initial guess, then three solvers are
 compared:
