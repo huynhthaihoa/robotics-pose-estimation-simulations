@@ -170,12 +170,10 @@ The SLAM problem becomes:
 
 Mathematically, you can think of:
 
-$$
-\mathbf{x}^*
+$${\mathbf{x}^*
 =
 \arg\min_{\mathbf{x}}
-\sum_i \|r_i(\mathbf{x})\|^2
-$$
+\sum_i \|r_i(\mathbf{x})\|^2}$$
 
 where:
 
@@ -244,17 +242,13 @@ That's a huge conceptual difference.
 
 Filtering asks:
 
-$$
-p(x_t \mid z_{0:t})
-$$
+$${p(x_t \mid z_{0:t})}$$
 
 > "What is my belief about the current state given measurements up to now?"
 
 Smoothing asks something closer to:
 
-$$
-p(x_{0:t} \mid z_{0:t})
-$$
+$${p(x_{0:t} \mid z_{0:t})}$$
 
 > "Given all measurements, what is my belief about the entire trajectory?"
 
