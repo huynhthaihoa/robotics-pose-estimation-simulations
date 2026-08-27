@@ -226,6 +226,12 @@ Then compare:
 
 $${\text{error}_{ij} = z_{ij}^{-1}(T_i^{-1}T_j)}$$
 
+That comparison is still a **group element** ($SE(2)$/$SE(3)$, not a plain vector), so to actually measure "how big" it is — and to compute the Jacobians the optimizer needs — we take its **Log map**, which turns it into a tangent-space vector:
+
+$${e_{ij} = \text{Log}(\text{error}_{ij}) = \text{Log}\big(z_{ij}^{-1}(T_i^{-1}T_j)\big)}$$
+
+That vector $e_{ij}$ is the thing that actually gets squared below.
+
 Conceptually:
 
 ```text
@@ -241,7 +247,11 @@ estimated relationship
      compare
 
         ↓
-      error
+      error (group element)
+        ↓
+     Log map
+        ↓
+   vector eᵢⱼ
 ```
 
 Then PGO minimizes the total error over every edge in the graph (odometry edges plus loop-closure edges):
@@ -251,6 +261,8 @@ $${\boxed{\min_{T_0,\ldots,T_n}\sum_{(i,j) \in \mathcal{E}}\|e_{ij}\|^2}}$$
 So in plain English:
 
 > **Find the poses that make all the measured relative transformations agree as much as possible.**
+
+One subtlety this formula hides: since every constraint is *relative*, rigidly translating and rotating the entire graph together leaves every $e_{ij}$ completely unchanged — the optimization has a flat direction with zero curvature, called **gauge freedom**. In practice this is fixed by anchoring one pose (usually $T_0$), e.g. by giving it an enormous information weight so the linear system solved at each step has a unique solution instead of infinitely many equally-good ones.
 
 ---
 
@@ -473,7 +485,12 @@ $${\min_X \sum_{(i,j) \in \mathcal{E}} e_{ij}^T \Omega_{ij} e_{ij}}$$
 
 where $\Omega_{ij}$ is related to the **information/covariance** of the measurement.
 
-This is why sensor uncertainty matters.
+This is why sensor uncertainty matters — though it's worth noting that `pose_graph.py`, the toy
+implementation accompanying this doc, keeps things simple: it shares one identity `info_matrix`
+across every edge (odometry and loop-closure alike), so it doesn't actually exploit per-edge
+weighting the way $\Omega_{ij}$ above suggests — even though its loop-closure edge is generated
+with a different noise level than the odometry edges. Per-edge weighting like this is a natural
+extension, not something the default script does.
 
 ---
 

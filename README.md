@@ -59,6 +59,16 @@ of the same filename.
   pose-graph relaxation (odometry drift + one loop closure), jointly
   optimized via Levenberg-Marquardt, reusing the same `lie_utils.py` SE(3)
   Exp/Log/inverse-right-Jacobian/adjoint math as `pointcloud_pose_tracking.py`.
+- [bundle_adjustment.py](use_numpy/bundle_adjustment.py): jointly refines
+  camera poses **and** 3D landmarks against pinhole reprojection error —
+  cameras on an arc around a landmark cluster, with a field-of-view cutoff
+  so not every camera observes every landmark. Compares three solvers:
+  landmarks-only and poses-only refinement (independent 3x3/6x6 GN solves,
+  each a "fix one side" strawman) against full joint bundle adjustment
+  (coupled dense GN over poses + landmarks, gauge-fixed with a prior factor
+  on the first two camera poses, then Umeyama-aligned to ground truth before
+  reporting absolute error, since monocular BA only recovers the scene up to
+  an unknown similarity transform).
 
 ### [use_manif/](use_manif/) — same simulations, on `manifpy`
 
@@ -74,6 +84,11 @@ of the same filename.
   `manifpy`'s `rplus`/`rminus`/`act` Jacobian out-parameters instead of
   `lie_utils.py`.
 - [pose_graph.py](use_manif/pose_graph.py)
+- [bundle_adjustment.py](use_manif/bundle_adjustment.py): same three
+  solvers as the `use_numpy` version, with camera-pose Jacobians obtained by
+  chaining `manifpy`'s own `inverse`/`act` Jacobian out-parameters instead of
+  a hand-rolled closed form; landmarks stay plain numpy R^3 vectors (manif
+  has no notion of those), same as `pointcloud_pose_tracking.py`.
 
 ### Root
 
@@ -232,5 +247,69 @@ uv run python use_numpy/pose_graph.py --side-length 2.0 --pos-noise-std 0.05 --r
 - `--damping`: Levenberg-Marquardt damping factor (default `0.01`)
 - `--gn-tol`: convergence tolerance on the correction step norm (default `1e-6`)
 - `--gn-max-iters`: maximum optimization iterations (default `10`)
+- `--seed`: RNG seed (default `0`)
+- `--out`: save the figure to this path instead of showing it (default: show)
+
+### 6. Bundle adjustment: joint pose + landmark refinement
+
+`use_numpy/bundle_adjustment.py` / `use_manif/bundle_adjustment.py`
+
+`n_cameras` cameras are placed on a horizontal arc around a cluster of
+`n_landmarks` 3D landmarks, each looking inward via a look-at rotation. A
+camera field-of-view cutoff means not every camera observes every landmark
+(landmarks seen by fewer than `--min-observations` cameras are dropped as
+not triangulable) — this is `docs/bundle_adjustment.md`'s observed set
+`\mathcal{O}`, a real strict subset of all camera-landmark pairs, not "every
+camera sees everything." Every camera pose and every landmark is perturbed
+from ground truth to build a noisy initial guess, then three solvers are
+compared:
+
+- **Landmarks-only refinement**: poses held fixed at their noisy initial
+  guess, only landmarks refined (the "cameras are correct" strawman) —
+  decouples into independent 3x3 Gauss-Newton solves per landmark (classic
+  triangulation from known poses).
+- **Poses-only refinement**: landmarks held fixed, only poses refined (the
+  "points are correct" strawman) — decouples into independent 6x6
+  Gauss-Newton solves per camera (classic PnP-style resection).
+- **Full joint bundle adjustment**: both refined together in one coupled
+  dense Gauss-Newton solve over every pose and landmark — the actual thing
+  bundle adjustment is. This reintroduces the classic monocular BA gauge
+  freedom (6-DoF rigid + 1-DoF scale ambiguity), fixed with a prior factor on
+  the first two camera poses (mean = their own noisy initial guess), the
+  same prior-factor pattern `pointcloud_pose_tracking.py`'s `run_batch_gn`
+  already uses for its own gauge freedom. Since this only recovers the scene
+  up to an unknown similarity transform, the result is aligned to ground
+  truth via Umeyama's least-squares similarity fit (standard practice for
+  evaluating monocular BA/SfM output) before computing absolute pose/
+  landmark error — reprojection error is unaffected by this alignment.
+
+Camera-pose Jacobians come from a hand-derived closed form
+(`d(p_c)/d(right-perturbation of T) = [-I | skew(p_c)]`, finite-difference
+verified) in the `use_numpy` version, and from chaining `manifpy`'s own
+`inverse`/`act` Jacobian out-parameters in the `use_manif` version — no
+manifold formula hand-rolled there. Prints RMS pose rotation/position error,
+landmark error, and reprojection error for all four rows (noisy init,
+landmarks-only, poses-only, joint BA), and plots a top-down scene view
+(ground truth vs. noisy init vs. joint BA) alongside a grouped bar chart of
+the four RMS metrics.
+
+```
+uv run python use_numpy/bundle_adjustment.py --n-cameras 8 --n-landmarks 60 --camera-radius 5.0 --arc-span-deg 180 --landmark-spread 2.0 --fov-deg 70 --image-width 640 --image-height 480 --focal-length 800 --pose-noise-std 0.1 --landmark-noise-std 0.3 --pixel-noise-std 1.0 --min-observations 2 --gn-tol 1e-6 --gn-max-iters 30 --seed 0 --out out.png
+```
+
+- `--n-cameras`: number of cameras placed on the arc (default `8`)
+- `--n-landmarks`: number of 3D landmarks sampled, before dropping under-observed ones (default `60`)
+- `--camera-radius`: radius of the camera arc, centered on the landmark centroid, m (default `5.0`)
+- `--arc-span-deg`: total angular span of the camera arc, deg (default `180`)
+- `--landmark-spread`: half-width of the cube landmarks are sampled in, m (default `2.0`)
+- `--fov-deg`: camera full field-of-view angle; controls which landmarks each camera observes, deg (default `70`)
+- `--image-width`, `--image-height`: image size in pixels, sets `cx`/`cy` (default `640`/`480`)
+- `--focal-length`: shared `fx=fy` focal length in pixels (default `800`)
+- `--pose-noise-std`: std-dev of the se3 twist used to perturb the initial camera-pose guess, mixed m/rad (default `0.1`)
+- `--landmark-noise-std`: std-dev of the Gaussian offset used to perturb the initial landmark guess, m (default `0.3`)
+- `--pixel-noise-std`: std-dev of Gaussian pixel measurement noise, px (default `1.0`)
+- `--min-observations`: minimum observing cameras a landmark needs to be kept; must be `>= 2` (default `2`)
+- `--gn-tol`: Gauss-Newton convergence tolerance (default `1e-6`)
+- `--gn-max-iters`: maximum Gauss-Newton iterations (default `30`)
 - `--seed`: RNG seed (default `0`)
 - `--out`: save the figure to this path instead of showing it (default: show)
