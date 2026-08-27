@@ -115,7 +115,7 @@ This tells you:
 
 So you can think of the Jacobian as a **sensitivity table**.
 
-*(This $H$ is schematic — its exact entries depend on the camera model, which isn't specified here. Section 4 below works out a real projection formula end-to-end.)*
+> This $H$ is schematic — its exact entries depend on the camera model, which isn't specified here. Section 4 below works out a real projection formula end-to-end.
 
 ---
 
