@@ -348,7 +348,7 @@ This gives us a useful trade-off:
 right intuition for small, fixed-size problems, but it inverts at scale. EKF-style filtering
 maintains a *dense* joint covariance over the state, so each update costs roughly $O(n^2)$ in the
 number of landmarks/poses (Dissanayake et al., 2001). Sparse factor-graph smoothing exploits the
-sparsity of the underlying graph, so incremental solvers like iSAM2 update in close to $O(1)$–$O(\log n)$
+sparsity of the underlying graph, so incremental solvers like iSAM2 update in close to $O(1)$ – ${O(\log n)}$
 amortized time even as the map grows (Kaess et al., 2012). That gap — not accuracy — is the actual
 reason large-scale SLAM systems moved from EKF-SLAM toward factor-graph smoothing: dense filtering
 simply doesn't scale to large maps the way sparse smoothing does.
