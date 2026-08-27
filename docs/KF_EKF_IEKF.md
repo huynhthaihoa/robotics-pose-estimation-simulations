@@ -46,7 +46,8 @@ where:
 * $z$: measurement
 * $F$: linear motion model
 * $H$: linear measurement model
-* $w$,$v$: noise
+* $w$: process noise (everything motion model $F$ doesn't capture like unmodeled dynamics, wind gusts, wheel slip, IMU bias drift, etc.)
+* $v$: measurement noise (sensor imperfection like GPS jitter, camera pixel noise, IMU noise, etc.)
 
 ### Intuition
 
