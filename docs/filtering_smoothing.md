@@ -170,10 +170,7 @@ The SLAM problem becomes:
 
 Mathematically, you can think of:
 
-$${\mathbf{x}^*
-=
-\arg\min_{\mathbf{x}}
-\sum_i \|r_i(\mathbf{x})\|^2}$$
+$${\mathbf{x}^*=\arg\min_{\mathbf{x}}\sum_i \|r_i(\mathbf{x})\|^2}$$
 
 where:
 
