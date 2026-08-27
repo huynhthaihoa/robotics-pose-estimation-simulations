@@ -59,7 +59,7 @@ It's elegant and mathematically clean, but it doesn't work directly for things l
 
 ---
 
-# 2. Extended Kalman Filter: “The world is nonlinear, so I'll approximate it locally”
+## 2. Extended Kalman Filter: “The world is nonlinear, so I'll approximate it locally”
 
 Now suppose your robot is moving.
 
@@ -128,7 +128,7 @@ This works surprisingly well and is probably one of the most widely used nonline
 
 ---
 
-# 3. But here's the problem with EKF
+## 3. But here's the problem with EKF
 
 This becomes particularly important in **robotics and SLAM**.
 
@@ -174,7 +174,7 @@ And this is where the Invariant EKF becomes interesting.
 
 ---
 
-# 4. Invariant EKF: “Let's respect the geometry of the problem”
+## 4. Invariant EKF: “Let's respect the geometry of the problem”
 
 The key insight is:
 
@@ -213,7 +213,7 @@ This property is related to **invariance**.
 
 ---
 
-# 5. The big difference
+## 5. The big difference
 
 Here's perhaps the most useful mental model:
 
@@ -229,7 +229,7 @@ It's a different way of constructing the error and performing the linearization.
 
 ---
 
-# 6. The really important difference: how do you define error?
+## 6. The really important difference: how do you define error?
 
 This is probably the most important concept for understanding IEKF.
 
@@ -283,7 +283,7 @@ problem from §3 — not the exp/log notation on its own.
 
 ---
 
-# 7. Why is this useful for SLAM?
+## 7. Why is this useful for SLAM?
 
 This becomes especially relevant to your PhD topic because you're dealing with **SLAM and state estimation for robots with unusual motion**.
 
@@ -315,7 +315,7 @@ That can give you much better behavior when the system is highly nonlinear.
 
 ---
 
-# 8. A nice analogy
+## 8. A nice analogy
 
 Imagine you're navigating Prague with a map. 🙂
 
@@ -349,7 +349,7 @@ So instead of pretending the map is just a giant flat vector space, you explicit
 
 ---
 
-# 9. Another way to visualize the progression
+## 9. Another way to visualize the progression
 
 Think about this:
 
@@ -388,7 +388,7 @@ Think about this:
 
 ---
 
-# 10. The subtle but important point
+## 10. The subtle but important point
 
 One misconception is:
 
