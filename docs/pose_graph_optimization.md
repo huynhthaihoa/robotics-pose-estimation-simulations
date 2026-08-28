@@ -226,7 +226,7 @@ Then compare:
 
 $${\text{error}_{ij} = z_{ij}^{-1}(T_i^{-1}T_j)}$$
 
-That comparison is still a **group element** ($SE(2)$/$SE(3)$, not a plain vector), so to actually measure "how big" it is — and to compute the Jacobians the optimizer needs — we take its **Log map**, which turns it into a tangent-space vector:
+That comparison is still a **group element** ($SE(2)$ / $SE(3)$, not a plain vector), so to actually measure "how big" it is — and to compute the Jacobians the optimizer needs — we take its **Log map**, which turns it into a tangent-space vector:
 
 $${e_{ij} = \text{Log}(\text{error}_{ij}) = \text{Log}\big(z_{ij}^{-1}(T_i^{-1}T_j)\big)}$$
 
@@ -559,7 +559,7 @@ The full state vector containing all $N$ pose keyframes is $X = \{T_1, T_2, \dot
 
 #### Relative Edge Measurements
 
-An edge $e_{ij}$ between nodes $i$ and $j$ represents a relative transformation measurement ${z_{ij} = \tilde{T}_{ij} \in \mathrm{SE}(3)}$ (e.g., from ICP scan matching or visual odometry), accompanied by an information matrix ${\Omega_{ij} = \Sigma_{ij}^{-1} \in \mathbb{R}^{6 \times 6}}$ representing measurement confidence.
+An edge $e_{ij}$ between nodes $i$ and $j$ represents a relative transformation measurement ${z_{ij} = {\tilde{T}\_{ij} \in \mathrm{SE}(3)}}$ (e.g., from ICP scan matching or visual odometry), accompanied by an information matrix ${\Omega_{ij} = {\Sigma_{ij}^{-1} \in \mathbb{R}^{6 \times 6}}}$ representing measurement confidence.
 
 
 
@@ -575,11 +575,11 @@ $${E_{ij} = \tilde{T}_{ij}^{-1} \left( T_i^{-1} T_j \right)}$$
 
 #### Mapping Error to Tangent Space ${\mathfrak{se}(3)}$
 
-Because optimization requires a 6-dimensional Euclidean vector space, the matrix error ${E_{ij}}$ is mapped to its local tangent space (Lie algebra ${\mathfrak{se}(3)}$) via the logarithmic map $\log: \mathrm{SE}(3) \to \mathfrak{se}(3)$, and flattened into a vector ${\mathbb{R}^6}$ using the **vee operator** ${(\cdot)^\vee}$ — together, ${\mathrm{Log}(\cdot) = (\log(\cdot))^\vee: \mathrm{SE}(3) \to \mathbb{R}^6}$, mirroring the lowercase/uppercase convention already used for ${\exp}$ / ${\mathrm{Exp}}$ below:
+Because optimization requires a 6-dimensional Euclidean vector space, the matrix error ${E_{ij}}$ is mapped to its local tangent space (Lie algebra ${\mathfrak{se}(3)}$) via the logarithmic map ${\log: \mathrm{SE}(3) \to \mathfrak{se}(3)}$, and flattened into a vector ${\mathbb{R}^6}$ using the **${\vee}$ operator** ${(\cdot)^\vee}$ — together, ${\mathrm{Log}(\cdot) = (\log(\cdot))^\vee: \mathrm{SE}(3) \to \mathbb{R}^6}$, mirroring the lowercase/uppercase convention already used for ${\exp}$ / ${\mathrm{Exp}}$ below:
 
 $${r_{ij}(X) = \left( \log \left( \tilde{T}_{ij}^{-1} T_i^{-1} T_j \right) \right)^\vee \in \mathbb{R}^6}$$
 
-The residual vector ${r_{ij} = {\begin{bmatrix} \rho_{ij}^\top & \theta_{ij}^\top \end{bmatrix}}^\top}$ captures 3D translational error ${\rho_{ij}}$ and rotational error ${\theta_{ij}}$.
+The residual vector ${r_{ij} = \left[ \rho_{ij}^\top \;\; \theta_{ij}^\top \right]^\top}$ captures 3D translational error ${\rho_{ij}}$ and rotational error ${\theta_{ij}}$.
 
 ### 3. Objective Function
 
@@ -593,7 +593,7 @@ Standard vector updates ${T_i \leftarrow T_i + \Delta x_i}$ break the matrix con
 
 #### Local Perturbation Model (Left / Right Multiplication)
 
-Applying a local perturbation ${\boldsymbol{\xi}_i = {\begin{bmatrix} \rho^\top & \boldsymbol{\phi}^\top \end{bmatrix}}^\top \in \mathbb{R}^6}$ to state $T_i$:
+Applying a local perturbation ${\boldsymbol{\xi}_i = \left[ \rho^\top \;\; \boldsymbol{\phi}^\top \right]^\top \in \mathbb{R}^6}$ to state $T_i$:
 
 $${T_i \oplus \boldsymbol{\xi}_i = T_i \cdot \mathrm{Exp}(\boldsymbol{\xi}_i)}$$
 
@@ -607,7 +607,7 @@ Linearizing the residual $r_{ij}$ with respect to local perturbations ${\boldsym
 
 $$r_{ij}(X \oplus \boldsymbol{\delta}) \approx r_{ij}(X) + J_i \, \boldsymbol{\xi}_i + J_j \, \boldsymbol{\xi}_j$$
 
-Where the Jacobians ${J_i = \frac{\partial r_{ij}}{\partial \boldsymbol{\xi}_i}}$ and ${J_j = \frac{\partial r_{ij}}{\partial \boldsymbol{\xi}_j}}$ are derived using the **Right Inverse Baker-Campbell-Hausdorff (BCH) approximation**:
+Where the Jacobians ${J_i = \frac{\partial r_{ij}}{\partial \boldsymbol{\xi}\_i}}$ and ${J_j = \frac{\partial r_{ij}}{\partial \boldsymbol{\xi}_j}}$ are derived using the **Right Inverse Baker-Campbell-Hausdorff (BCH) approximation**:
 
 $${J_j = J_r^{-1}(r_{ij})}$$
 
@@ -627,7 +627,7 @@ $${H \, \boldsymbol{\delta}^* = -b}$$
 
 * **Hessian Matrix:** ${H = J^\top \Omega J = \sum_{(i,j) \in \mathcal{E}} J_{ij}^\top \Omega_{ij} J_{ij} \in \mathbb{R}^{6N \times 6N}}$
 * **Gradient Vector:** ${b = J^\top \Omega R(X) \in \mathbb{R}^{6N}}$
-* **Update Vector:** ${\boldsymbol{\delta}^* = \begin{bmatrix} \boldsymbol{\xi}_1^\top & \boldsymbol{\xi}_2^\top & \dots & \boldsymbol{\xi}_N^\top \end{bmatrix}^\top}$
+* **Update Vector:** ${\boldsymbol{\delta}^* = \left[ \boldsymbol{\xi}_1^\top \;\; \boldsymbol{\xi}_2^\top \;\; \dots \;\; \boldsymbol{\xi}_N^\top \right]^\top}$
 
 Because edges only connect adjacent or loop-closing keyframes, $H$ is extremely **sparse** and block-structured. It is typically solved using Sparse Cholesky Factorization (${\mathrm{LL}^\top}$ or ${\mathrm{LDL}^\top}$) or Conjugate Gradients in solvers like GTSAM or g2o.
 
@@ -717,7 +717,7 @@ $$s_{ij} = \min\left(1, \; \frac{2 \Phi}{\Phi + e_{ij}^2}\right)$$
 ### Comparison of Robust Loss Functions
 
 | Loss Function | Residual Cost Tail $\rho(e)$ | Weight Degeneration $w(e)$ | SLAM False Loop Rejection Power |
-|  |  |  |  |
+| ------------- | ------------- | ------------- | ------------- |
 | **Standard $L_2$** | Unbounded Quadratic ($e^2$) | Constant ($1.0$) | **None** (1 outlier ruins the map) |
 | **Huber** | Unbounded Linear ($\delta e$) | $\propto \frac{1}{e}$ | **Low/Moderate** (Dampens, but still pulls graph) |
 | **Cauchy** | Logarithmic ($\ln e^2$) | $\propto \frac{1}{e^2}$ | **High** |
