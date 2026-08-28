@@ -575,11 +575,11 @@ $${E_{ij} = \tilde{T}_{ij}^{-1} \left( T_i^{-1} T_j \right)}$$
 
 #### Mapping Error to Tangent Space ${\mathfrak{se}(3)}$
 
-Because optimization requires a 6-dimensional Euclidean vector space, the matrix error ${E_{ij}}$ is mapped to its local tangent space (Lie algebra ${\mathfrak{se}(3)}$) via the logarithmic map $\log: \mathrm{SE}(3) \to \mathfrak{se}(3)$, and flattened into a vector ${\mathbb{R}^6}$ using the **vee operator** ${(\cdot)^\vee$ — together, $\mathrm{Log}(\cdot) = (\log(\cdot))^\vee: \mathrm{SE}(3) \to \mathbb{R}^6}$, mirroring the lowercase/uppercase convention already used for ${\exp}$ / ${\mathrm{Exp}}$ below:
+Because optimization requires a 6-dimensional Euclidean vector space, the matrix error ${E_{ij}}$ is mapped to its local tangent space (Lie algebra ${\mathfrak{se}(3)}$) via the logarithmic map $\log: \mathrm{SE}(3) \to \mathfrak{se}(3)$, and flattened into a vector ${\mathbb{R}^6}$ using the **vee operator** ${(\cdot)^\vee}$ — together, ${\mathrm{Log}(\cdot) = (\log(\cdot))^\vee: \mathrm{SE}(3) \to \mathbb{R}^6}$, mirroring the lowercase/uppercase convention already used for ${\exp}$ / ${\mathrm{Exp}}$ below:
 
 $${r_{ij}(X) = \left( \log \left( \tilde{T}_{ij}^{-1} T_i^{-1} T_j \right) \right)^\vee \in \mathbb{R}^6}$$
 
-The residual vector ${r_{ij} = \begin{bmatrix} \rho_{ij}^\top & \theta_{ij}^\top \end{bmatrix}^\top}$ captures 3D translational error ${\rho_{ij}}$ and rotational error ${\theta_{ij}}$.
+The residual vector ${r_{ij} = {\begin{bmatrix} \rho_{ij}^\top & \theta_{ij}^\top \end{bmatrix}}^\top}$ captures 3D translational error ${\rho_{ij}}$ and rotational error ${\theta_{ij}}$.
 
 ### 3. Objective Function
 
@@ -593,17 +593,17 @@ Standard vector updates ${T_i \leftarrow T_i + \Delta x_i}$ break the matrix con
 
 #### Local Perturbation Model (Left / Right Multiplication)
 
-Applying a local perturbation ${\boldsymbol{\xi}_i = \begin{bmatrix} \rho^\top & \boldsymbol{\phi}^\top \end{bmatrix}^\top \in \mathbb{R}^6}$ to state $T_i$:
+Applying a local perturbation ${\boldsymbol{\xi}_i = {\begin{bmatrix} \rho^\top & \boldsymbol{\phi}^\top \end{bmatrix}}^\top \in \mathbb{R}^6}$ to state $T_i$:
 
 $${T_i \oplus \boldsymbol{\xi}_i = T_i \cdot \mathrm{Exp}(\boldsymbol{\xi}_i)}$$
 
-where ${\mathrm{Exp}(\boldsymbol{\xi}) = \exp(\boldsymbol{\xi}^\wedge) \in \mathrm{SE}(3}$, and ${(\cdot)^\wedge}$ maps a 6D vector to a ${4 \times 4$ Lie algebra element $\mathfrak{se}(3)}$:
+where ${\mathrm{Exp}(\boldsymbol{\xi}) = \exp(\boldsymbol{\xi}^\wedge) \in \mathrm{SE}(3)}$, and ${(\cdot)^\wedge}$ maps a 6D vector to a ${4 \times 4}$ Lie algebra element ${\mathfrak{se}(3)}$:
 
 $${\boldsymbol{\xi}^\wedge = \begin{bmatrix} \boldsymbol{\phi}^\wedge & \rho \\ \mathbf{0}^\top & 0 \end{bmatrix}, \quad \text{with } \boldsymbol{\phi}^\wedge = \begin{bmatrix} 0 & -\phi_z & \phi_y \\ \phi_z & 0 & -\phi_x \\ -\phi_y & \phi_x & 0 \end{bmatrix} \in \mathfrak{so}(3)}$$
 
 #### First-Order Taylor Expansion
 
-Linearizing the residual $r_{ij}$ with respect to local perturbations $\boldsymbol{\xi}_i$ and $\boldsymbol{\xi}_j$:
+Linearizing the residual $r_{ij}$ with respect to local perturbations ${\boldsymbol{\xi}_i}$ and ${\boldsymbol{\xi}_j}$:
 
 $$r_{ij}(X \oplus \boldsymbol{\delta}) \approx r_{ij}(X) + J_i \, \boldsymbol{\xi}_i + J_j \, \boldsymbol{\xi}_j$$
 
@@ -643,7 +643,7 @@ Once the increment vector ${\boldsymbol{\delta}^*}$ is computed, the system upda
 
 $${T_i^{(k+1)} = T_i^{(k)} \cdot \mathrm{Exp}\left(\boldsymbol{\xi}_i^*\right), \quad \forall i \in \{1, \dots, N\}}$$
 
-This iteration repeats until convergence (${\Vert{}\boldsymbol{\delta}^*\Vert{} < \epsilon$ or $\Vert{}\Delta F\Vert{} < \epsilon}$).
+This iteration repeats until convergence (${\Vert{}\boldsymbol{\delta}^*\Vert{} < \epsilon}$ or ${\Vert{}\Delta F\Vert{} < \epsilon}$).
 
 ## Robust loss functions used to handle false loop closures
 
