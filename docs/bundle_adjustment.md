@@ -539,7 +539,9 @@ Offline SfM pipelines sacrifice real-time speed for maximum accuracy: as COLMAP 
 
 ### Choosing between them
 
-Use **Local BA** for real-time robotics/AR/VR where sub-30ms latency matters more than perfect global consistency (loop closure repairs that later). Use **Global BA** for offline reconstruction — meshes, NeRF/Gaussian-Splatting input scenes, photogrammetric surveys — where total geometric fidelity matters more than runtime.
+Use **Local BA** for real-time robotics/AR/VR where sub-30ms latency matters more than perfect global consistency (loop closure repairs that later). 
+
+Use **Global BA** for offline reconstruction — meshes, NeRF/Gaussian-Splatting input scenes, photogrammetric surveys — where total geometric fidelity matters more than runtime.
 
 `bundle_adjustment.py`'s three solvers (`run_ba_landmarks_only`, `run_ba_poses_only`, `run_bundle_adjustment`) are all single-batch joint solves over the whole toy scene — closest in spirit to a (tiny) Global BA pass. It has no windowing, no covisibility graph, and no incremental registration, so it doesn't model Local BA's real-time system behavior at all.
 
