@@ -271,7 +271,7 @@ So:
 
 > **Logarithm map = turn an actual transformation back into a local motion.**
 
-(To pull the plain vector $\delta\theta \in \mathbb{R}^3$ out of the skew-symmetric matrix $\delta\theta^\wedge$, apply the inverse of the hat operator — usually called the **vee operator** $(\cdot)^\vee$ — so $\delta\theta = (\log(R))^\vee$.
+(To pull the plain vector $\delta\theta \in \mathbb{R}^3$ out of the skew-symmetric matrix $\delta\theta^\wedge$, apply the inverse of the hat operator — usually called the **vee operator** $(\cdot)^\vee$ — so $\delta\theta = (\log(R))^\vee$.)
 
 This is exactly how you turn "the difference between two poses" into a plain vector you can measure, weight, and feed into a least-squares solver — which is precisely what pose-graph optimization does with every edge residual.
 
@@ -352,6 +352,18 @@ So one 6D vector represents a tiny change in the entire robot pose:
 │
 └── rotation:     Δrx Δry Δrz
 ```
+
+Just like $so(3)$ had a hat operator turning a 3-vector into a skew-symmetric matrix (section 7), $se(3)$ has its own hat operator turning the 6-vector $\xi$ into a $4\times4$ matrix:
+
+$$\xi^\wedge = \begin{bmatrix} \phi^\wedge & \rho\\ 0 & 0 \end{bmatrix}$$
+
+where $\phi^\wedge$ is that same $3\times3$ skew-symmetric block from before.
+
+Here's the part that's easy to get wrong: **$\exp(\xi^\wedge)$ is *not* "exponentiate the rotation part and copy the translation part over unchanged."** Rotation and translation are coupled — sweeping a small rotation while translating traces a curve, not a straight line. The closed form is:
+
+$$\exp(\xi^\wedge) = \begin{bmatrix} \exp(\phi^\wedge) & V\rho\\ 0 & 1 \end{bmatrix}$$
+
+where $V$ is a $3\times3$ matrix (built purely from $\phi$) that "bends" the raw translation $\rho$ to account for that coupling. The exact formula for $V$ isn't the point here — what matters is: **you can't just glue the $SO(3)$ exponential and the raw translation together; $SE(3)$'s exponential map genuinely mixes rotation and translation.** (The log map has the mirror-image subtlety: recovering $\rho$ from a pose requires $V^{-1}$, not just reading the translation column off directly.)
 
 Then:
 
