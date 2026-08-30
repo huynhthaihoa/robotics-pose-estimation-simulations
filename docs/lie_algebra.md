@@ -53,7 +53,9 @@ Simply adding numbers to a rotation matrix will generally destroy these properti
 
 For example, you could accidentally obtain something like:
 
-$$\begin{bmatrix}1.01 & 0 & 0\\0 & 1.02 & 0\\0 & 0 & 1\end{bmatrix}$$
+$$\begin{bmatrix}1.01 & 0 & 0\\
+0 & 1.02 & 0\\
+0 & 0 & 1\end{bmatrix}$$
 
 which isn't a valid rotation.
 
@@ -65,7 +67,9 @@ which isn't a valid rotation.
 
 Suppose your robot position is
 
-$$p =\begin{bmatrix}x\\y\\z\end{bmatrix}$$
+$$p =\begin{bmatrix}x\\
+y\\
+z\end{bmatrix}$$
 
 A small movement is simply:
 
@@ -331,8 +335,7 @@ $$\mathfrak{se}(3)$$
 
 and a small pose perturbation can be represented as:
 
-$$\xi = \begin{bmatrix}
-\rho\\
+$$\xi = \begin{bmatrix} \rho\\
 \phi \end{bmatrix} \in \mathbb{R}^6$$
 
 where:
