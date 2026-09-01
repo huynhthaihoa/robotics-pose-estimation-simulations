@@ -5,6 +5,7 @@
 The easiest way to think about **Lie groups and Lie algebras** is:
 
 > **Lie group = the actual transformations you can perform.**
+
 > **Lie algebra = the small, local motions that generate those transformations.**
 
 For robotics:
@@ -16,8 +17,9 @@ For robotics:
 
 A useful analogy:
 
-> **Lie group = a map of the whole Earth**
-> **Lie algebra = a local coordinate system around where you currently are**
+> **Lie group = a map of the whole Earth.**
+
+> **Lie algebra = a local coordinate system around where you currently are.**
 
 The local coordinate system is much easier to do calculus with.
 
