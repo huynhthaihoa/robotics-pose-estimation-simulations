@@ -3,13 +3,13 @@
 
 The most intuitive way to understand them is to start with one idea:
 
-> **A Kalman Filter is basically a smart way of combining “what I predicted” with “what I measured.”**
+> **A Kalman Filter is basically a smart way of combining "what I predicted" with "what I measured."**
 
 The three filters differ mainly in **what kind of system they assume** and **how they deal with nonlinear motion**.
 
 ---
 
-## 1. Standard Kalman Filter: “Everything is nicely linear”
+## 1. Standard Kalman Filter: "Everything is nicely linear"
 
 Imagine you're tracking a car.
 
@@ -53,13 +53,13 @@ where:
 
 Think of the standard KF as:
 
-> **“I have a straight ruler, and the world behaves approximately like a straight line.”**
+> **"I have a straight ruler, and the world behaves approximately like a straight line."**
 
 It's elegant and mathematically clean, but it doesn't work directly for things like rotations, camera poses, or nonlinear robot dynamics.
 
 ---
 
-## 2. Extended Kalman Filter: “The world is nonlinear, so I'll approximate it locally”
+## 2. Extended Kalman Filter: "The world is nonlinear, so I'll approximate it locally"
 
 Now suppose your robot is moving.
 
@@ -77,7 +77,7 @@ A standard KF can't handle this directly.
 
 So the EKF says:
 
-> “Okay, the system is nonlinear, but perhaps I can pretend it's linear **around my current estimate**.”
+> "Okay, the system is nonlinear, but perhaps I can pretend it's linear **around my current estimate**."
 
 It uses a **Jacobian** to locally approximate the nonlinear function.
 
@@ -101,8 +101,8 @@ Imagine a curved road:
 
 The EKF essentially says:
 
-> “I don't need to understand the whole curve.
-> I just need to approximate the curve around where I currently am.”
+> "I don't need to understand the whole curve.
+> I just need to approximate the curve around where I currently am."
 
 Mathematically, if: $x_{k+1}=f(x_k,u_k)+w$
 
@@ -174,7 +174,7 @@ And this is where the Invariant EKF becomes interesting.
 
 ---
 
-## 4. Invariant EKF: “Let's respect the geometry of the problem”
+## 4. Invariant EKF: "Let's respect the geometry of the problem"
 
 The key insight is:
 
@@ -223,7 +223,7 @@ Here's perhaps the most useful mental model:
 | **EKF**  | "The world is nonlinear, so I'll linearize it."                                                |
 | **IEKF** | "The world is nonlinear, so I'll linearize it in a way that respects its geometry/symmetries." |
 
-The IEKF is therefore **not simply “EKF but more accurate.”**
+The IEKF is therefore **not simply "EKF but more accurate."**
 
 It's a different way of constructing the error and performing the linearization.
 
@@ -482,7 +482,7 @@ group at all. A reasonable "what comes after IEKF" pointer if you want to go fur
 
 ---
 
-## References
+## 13. References
 
 1. Kalman, R. E. (1960). *A New Approach to Linear Filtering and Prediction Problems*. Journal of
    Basic Engineering, 82(1), 35–45. https://doi.org/10.1115/1.3662552 — the original formulation
@@ -500,11 +500,11 @@ group at all. A reasonable "what comes after IEKF" pointer if you want to go fur
    paper that introduces the IEKF discussed in §3, §4, and §6.
 5. Solà, J., Deray, J., & Atchuthan, D. (2018). *A micro Lie theory for state estimation in
    robotics*. arXiv:1812.01537. https://arxiv.org/abs/1812.01537 — background for the exp/log/hat
-   (Lie group) notation used in §4, §6, and §7, and the theoretical basis of the `manif` library
-   used in this repo's own benchmark referenced in §10.
+   (Lie group) notation used in §6, and the theoretical basis of the `manif` library used in this
+   repo's own benchmark referenced in §10.
 6. Julier, S. J., & Uhlmann, J. K. (1997). *New extension of the Kalman filter to nonlinear
    systems*. Proc. SPIE 3068, Signal Processing, Sensor Fusion, and Target Recognition VI, 182–193.
-   — the original UKF paper, referenced in §12.
+   https://doi.org/10.1117/12.280797 — the original UKF paper, referenced in §12.
 7. Solà, J. (2017). *Quaternion kinematics for the error-state Kalman filter*. arXiv:1711.02508.
    https://arxiv.org/abs/1711.02508 — the standard ESKF reference, §6 and §12.
 8. Mourikis, A. I., & Roumeliotis, S. I. (2007). *A Multi-State Constraint Kalman Filter for

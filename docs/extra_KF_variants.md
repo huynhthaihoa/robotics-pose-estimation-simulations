@@ -14,9 +14,9 @@ A good mental map is:
           │                   │                    │
       Standard KF       ┌─────┴─────┐         Particle Filter
                         │           │
-                       EKF         UKF
-                        │           │
-                      ESKF      Sigma points
+                       EKF     UKF (sigma points)
+                        │
+                      ESKF
                         │
                       IEKF
 ```
@@ -260,7 +260,40 @@ It's generally **less central to robotics/SLAM** than EKF/ESKF/IEKF.
 
 ---
 
-## 7. Adaptive Kalman Filter
+## 7. Particle Filter (PF)
+
+This one drops the Gaussian assumption that every other variant in this list relies on.
+
+Instead of a mean and covariance, your belief is a swarm of weighted samples ("particles"), each one a full hypothesis for the state:
+
+```text
+belief ≈ {(x⁽¹⁾, w⁽¹⁾), (x⁽²⁾, w⁽²⁾), ..., (x⁽ᴺ⁾, w⁽ᴺ⁾)}
+```
+
+Each particle is propagated through the (possibly highly nonlinear) motion model, reweighted by how well it explains the latest measurement, and periodically resampled so particles that poorly explain the data get replaced by copies of the better ones:
+
+```text
+     particles              after motion            after weighting
+                              + resampling
+
+   •  •   •                  •    •                    •  •
+  •    •     •     --->     •  •    •      --->        •••  •
+     •    •                    •   •                       •
+```
+
+This lets a PF represent **multimodal** beliefs — "the robot is either in room A or room B, I genuinely don't know which" — something a single Gaussian, which every KF-family filter assumes, simply cannot express.
+
+**Why care?**
+
+* No linearity or Gaussian-noise assumption at all — works for arbitrarily nonlinear, non-Gaussian problems.
+* Naturally represents multimodal beliefs (ambiguous data association, the kidnapped-robot problem, global localization).
+* Classic robotics use case: **Monte Carlo Localization (MCL)** — localizing a robot on a known map from range/bearing measurements.
+
+**The catch**: accuracy scales with particle count, and in high-dimensional state spaces (like a full SLAM state vector) you need an impractically large number of particles to cover the space adequately. That's why particle filters are common for low-dimensional localization but rare for full SLAM state estimation, where EKF/UKF/factor-graph approaches dominate instead.
+
+---
+
+## 8. Adaptive Kalman Filter
 
 Normally you assume:
 
@@ -285,7 +318,7 @@ This is useful when the environment or sensor quality changes over time.
 
 ---
 
-## 8. Robust Kalman Filter
+## 9. Robust Kalman Filter
 
 Standard KF essentially assumes:
 
@@ -320,7 +353,7 @@ Although in robotics, robust losses such as **Huber loss** are also commonly use
 
 ---
 
-## 9. Kalman Smoother
+## 10. Kalman Smoother
 
 This isn't exactly another KF variant, but it's important enough to know.
 
@@ -361,7 +394,7 @@ This is very important for **offline SLAM and trajectory estimation**.
 
 ---
 
-## 10. Multi-rate / asynchronous Kalman filtering
+## 11. Multi-rate / asynchronous Kalman filtering
 
 This one is particularly practical for robotics.
 
@@ -397,7 +430,7 @@ This is one of the fundamental patterns behind real-time sensor fusion.
 
 ---
 
-## So which ones should YOU learn?
+## 12. So which ones should YOU learn?
 
 Given your background in **computer vision, SLAM, embedded systems, and your upcoming research on resource-constrained robots**, I wouldn't try to learn every Kalman variant equally.
 
@@ -480,9 +513,13 @@ When measurements contain outliers.
 
 Mostly important in high-dimensional scientific applications.
 
+**11. Particle Filter**
+
+Mostly useful for low-dimensional, multimodal problems like global/Monte Carlo localization; rarely used for full high-dimensional SLAM state estimation.
+
 ---
 
-## And there's one more important distinction for SLAM
+## 13. And there's one more important distinction for SLAM
 
 Once you get into modern robotics, you'll encounter two big families:
 

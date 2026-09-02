@@ -513,7 +513,7 @@ Local BA and Global BA solve the *exact same* objective from Section 6 — they 
 | Input | Sequential video with continuous tracking | Unordered photo collections (or long video) |
 | Frequency | Continuous, runs on every new keyframe | Periodic (e.g. every ~10-20% map growth) or a final pass |
 | Outlier handling | Fast local robust cost (Huber) + chi-square gating | Heavy re-triangulation, track merging/filtering |
-| Scaling | Roughly constant per window | Grows cubically with total scene size |
+| Scaling | Roughly constant per window | Grows cubically with the number of camera poses |
 
 ### Local BA (ORB-SLAM)
 
@@ -535,7 +535,7 @@ Because a covisibility neighborhood's size stays roughly constant regardless of 
 
 ### Global BA (COLMAP)
 
-Offline SfM pipelines sacrifice real-time speed for maximum accuracy: as COLMAP incrementally registers new images, it periodically re-optimizes **every** camera and **every** point jointly in one large least-squares problem, then uses the resulting global residuals to prune bad matches and re-triangulate points — something a local window can never do, since it never sees the whole map at once. The cost is that even after the Schur complement from Section 12, the reduced camera system still grows cubically with total scene size, so this can only run periodically or as a final step, not every frame.
+Offline SfM pipelines sacrifice real-time speed for maximum accuracy: as COLMAP incrementally registers new images, it periodically re-optimizes **every** camera and **every** point jointly in one large least-squares problem, then uses the resulting global residuals to prune bad matches and re-triangulate points — something a local window can never do, since it never sees the whole map at once. The cost is that even after the Schur complement from Section 12, the reduced camera-only system still grows cubically with the number of camera poses — and assembling that Schur complement in the first place costs roughly linear time in the number of points/observations — so this can only run periodically or as a final step, not every frame.
 
 ### Choosing between them
 
@@ -547,7 +547,7 @@ Use **Global BA** for offline reconstruction — meshes, NeRF/Gaussian-Splatting
 
 ---
 
-## One sentence to remember
+## 14. One sentence to remember
 
 > **Bundle Adjustment is the process of jointly refining camera poses and 3D landmarks so that their projections agree as closely as possible with the observed image features.**
 

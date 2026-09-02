@@ -115,11 +115,13 @@ This tells you:
 
 So you can think of the Jacobian as a **sensitivity table**.
 
-> This $H$ is schematic — its exact entries depend on the camera model, which isn't specified here. Section 4 below works out a real projection formula end-to-end.
+> This $H$ is schematic — its exact entries depend on the camera model, which isn't specified here. Section 4 below works out a concrete projection Jacobian end-to-end — though there the input is the 3D point being observed rather than the robot pose, so it's a related but distinct sensitivity matrix (labeled $J$, not $H$, for that reason).
 
 ---
 
 ## 4. A very intuitive example: camera projection
+
+This works out a concrete instance of "camera measurement Jacobian" — but note it's differentiating with respect to the observed 3D point, not the robot pose from Section 3's $H$, which is why it gets its own symbol, $J$.
 
 Suppose a 3D point is:
 
@@ -374,7 +376,7 @@ That's one reason Lie groups and Jacobians become so tightly connected in modern
 
 ---
 
-## The one-sentence intuition
+## 10. The one-sentence intuition
 
 If you remember only one thing:
 

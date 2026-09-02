@@ -485,12 +485,12 @@ $${\min_X \sum_{(i,j) \in \mathcal{E}} e_{ij}^T \Omega_{ij} e_{ij}}$$
 
 where $\Omega_{ij}$ is related to the **information/covariance** of the measurement.
 
-This is why sensor uncertainty matters — though it's worth noting that `pose_graph.py`, the toy
-implementation accompanying this doc, keeps things simple: it shares one identity `info_matrix`
-across every edge (odometry and loop-closure alike), so it doesn't actually exploit per-edge
-weighting the way $\Omega_{ij}$ above suggests — even though its loop-closure edge is generated
-with a different noise level than the odometry edges. Per-edge weighting like this is a natural
-extension, not something the default script does.
+This is why sensor uncertainty matters — though it's worth noting that `pose_graph.py` (both the
+`use_numpy/` and `use_manif/` versions), the toy implementations accompanying this doc, keep things
+simple: they share one identity `info_matrix` across every edge (odometry and loop-closure alike),
+so they don't actually exploit per-edge weighting the way $\Omega_{ij}$ above suggests — even
+though the loop-closure edge is generated with a different noise level than the odometry edges.
+Per-edge weighting like this is a natural extension, not something the default scripts do.
 
 
 
@@ -533,7 +533,7 @@ And the three questions become:
 
 
 
-## The one-sentence mental model
+## 14. The one-sentence mental model
 
 If you remember only one thing:
 
@@ -559,7 +559,7 @@ The full state vector containing all $N$ pose keyframes is $X = \{T_1, T_2, \dot
 
 #### Relative Edge Measurements
 
-An edge $e_{ij}$ between nodes $i$ and $j$ represents a relative transformation measurement ${z_{ij} = {\tilde{T}\_{ij} \in \mathrm{SE}(3)}}$ (e.g., from ICP scan matching or visual odometry), accompanied by an information matrix ${\Omega_{ij} = {\Sigma_{ij}^{-1} \in \mathbb{R}^{6 \times 6}}}$ representing measurement confidence.
+An edge $e_{ij}$ between nodes $i$ and $j$ represents a relative transformation measurement ${z_{ij} = {\tilde{T}_{ij} \in \mathrm{SE}(3)}}$ (e.g., from ICP scan matching or visual odometry), accompanied by an information matrix ${\Omega_{ij} = {\Sigma_{ij}^{-1} \in \mathbb{R}^{6 \times 6}}}$ representing measurement confidence.
 
 
 
@@ -579,7 +579,7 @@ Because optimization requires a 6-dimensional Euclidean vector space, the matrix
 
 $${r_{ij}(X) = \left( \log \left( \tilde{T}_{ij}^{-1} T_i^{-1} T_j \right) \right)^\vee \in \mathbb{R}^6}$$
 
-The residual vector ${r_{ij} = \left[ \rho_{ij}^\top \;\; \theta_{ij}^\top \right]^\top}$ captures 3D translational error ${\rho_{ij}}$ and rotational error ${\theta_{ij}}$.
+The residual vector ${r_{ij} = \left[ \boldsymbol{\rho}_{ij}^\top \;\; \theta_{ij}^\top \right]^\top}$ captures 3D translational error ${\boldsymbol{\rho}_{ij}}$ and rotational error ${\theta_{ij}}$.
 
 ### 3. Objective Function
 
@@ -593,13 +593,13 @@ Standard vector updates ${T_i \leftarrow T_i + \Delta x_i}$ break the matrix con
 
 #### Local Perturbation Model (Left / Right Multiplication)
 
-Applying a local perturbation ${\boldsymbol{\xi}_i = \left[ \rho^\top \;\; \boldsymbol{\phi}^\top \right]^\top \in \mathbb{R}^6}$ to state $T_i$:
+Applying a local perturbation ${\boldsymbol{\xi}_i = \left[ \boldsymbol{\rho}^\top \;\; \boldsymbol{\phi}^\top \right]^\top \in \mathbb{R}^6}$ to state $T_i$:
 
 $${T_i \oplus \boldsymbol{\xi}_i = T_i \cdot \mathrm{Exp}(\boldsymbol{\xi}_i)}$$
 
 where ${\mathrm{Exp}(\boldsymbol{\xi}) = \exp(\boldsymbol{\xi}^\wedge) \in \mathrm{SE}(3)}$, and ${(\cdot)^\wedge}$ maps a 6D vector to a ${4 \times 4}$ Lie algebra element ${\mathfrak{se}(3)}$:
 
-$${\boldsymbol{\xi}^\wedge = \begin{bmatrix} \boldsymbol{\phi}^\wedge & \rho \\ \mathbf{0}^\top & 0 \end{bmatrix}, \quad \text{with } \boldsymbol{\phi}^\wedge = \begin{bmatrix} 0 & -\phi_z & \phi_y \\ \phi_z & 0 & -\phi_x \\ -\phi_y & \phi_x & 0 \end{bmatrix} \in \mathfrak{so}(3)}$$
+$${\boldsymbol{\xi}^\wedge = \begin{bmatrix} \boldsymbol{\phi}^\wedge & \boldsymbol{\rho} \\ \mathbf{0}^\top & 0 \end{bmatrix}, \quad \text{with } \boldsymbol{\phi}^\wedge = \begin{bmatrix} 0 & -\phi_z & \phi_y \\ \phi_z & 0 & -\phi_x \\ -\phi_y & \phi_x & 0 \end{bmatrix} \in \mathfrak{so}(3)}$$
 
 #### First-Order Taylor Expansion
 
@@ -607,7 +607,7 @@ Linearizing the residual $r_{ij}$ with respect to local perturbations ${\boldsym
 
 $$r_{ij}(X \oplus \boldsymbol{\delta}) \approx r_{ij}(X) + J_i \, \boldsymbol{\xi}_i + J_j \, \boldsymbol{\xi}_j$$
 
-Where the Jacobians ${J_i = \frac{\partial r_{ij}}{\partial \boldsymbol{\xi}\_i}}$ and ${J_j = \frac{\partial r_{ij}}{\partial \boldsymbol{\xi}_j}}$ are derived using the **Right Inverse Baker-Campbell-Hausdorff (BCH) approximation**:
+Where the Jacobians ${J_i = \frac{\partial r_{ij}}{\partial \boldsymbol{\xi}_i}}$ and ${J_j = \frac{\partial r_{ij}}{\partial \boldsymbol{\xi}_j}}$ are derived using the **Right Inverse Baker-Campbell-Hausdorff (BCH) approximation**:
 
 $${J_j = J_r^{-1}(r_{ij})}$$
 
@@ -635,7 +635,7 @@ In practice a pure Gauss-Newton step can overshoot or diverge far from the solut
 
 $${(H + \lambda I) \, \boldsymbol{\delta}^* = -b}$$
 
-Larger $\lambda$ shrinks the step toward gradient descent (safer, slower) while ${\lambda \to 0}$ recovers pure Gauss-Newton (faster near convergence). `pose_graph.py` uses this damped form with a fixed `damping` coefficient (`H += np.eye(dof) * damping`) rather than pure, undamped Gauss-Newton.
+Larger $\lambda$ shrinks the step toward gradient descent (safer, slower) while ${\lambda \to 0}$ recovers pure Gauss-Newton (faster near convergence). Both `pose_graph.py` implementations (`use_numpy/` and `use_manif/`) use this damped form with a fixed `damping` coefficient (`H += np.eye(dof) * damping`) rather than pure, undamped Gauss-Newton.
 
 ### 6. Retraction / State Update
 
@@ -698,11 +698,11 @@ $$s_{ij} = \min\left(1, \; \frac{2 \Phi}{\Phi + e_{ij}^2}\right)$$
 
 ```
                        DCS Scaling Factor (s_ij)
-          1.0 |-\
-              |              \  (s_ij decreases as error grows)
-              |               \
-          0.0 +-> e_ij^2 (Error)
-              0             Phi
+          1.0 |────────────┐
+              |              \
+              |               \___   (s_ij decreases once e_ij^2 > Phi)
+          0.0 +--------------------> e_ij^2 (Error)
+              0            Phi
 
 ```
 
@@ -733,4 +733,4 @@ Note the distinction in the first column: Geman-McClure's cost $\rho(e)=e^2/(1+e
 1. **Threshold Tuning ($\delta, k, \Phi$):** The parameters set the boundary between inliers and outliers. In $\mathrm{SE}(3)$ PGO, error $e^2$ follows a Chi-Square distribution ($\chi^2$) with 6 degrees of freedom. Setting $\Phi$ or $k^2$ corresponding to the 95% or 99% quantile of $\chi^2(6)$ (e.g., $\Phi \approx 12.59$) provides a sound baseline.
 2. **Graduated Non-Convexity (GNC):** Highly non-convex robust functions (like DCS or Geman-McClure) can introduce local minima if applied from a poor initial guess. Modern solvers use GNC to start with a convex $L_2$ loss and gradually harden the robust kernel as iterations progress.
 
-This section is theory only: neither `pose_graph.py` nor `pose_graph_manif.py` implements Huber, Cauchy, or DCS reweighting — both scripts still use a single, unweighted `info_matrix = np.eye(6)` shared by every edge, odometry and loop-closure alike (the same gap already noted for per-edge $\Omega_{ij}$ weighting earlier in this doc). Robust loss reweighting is a natural extension a reader could add, not something the accompanying scripts exercise.
+This section is theory only: neither `use_numpy/pose_graph.py` nor `use_manif/pose_graph.py` implements Huber, Cauchy, or DCS reweighting — both scripts still use a single, unweighted `info_matrix = np.eye(6)` shared by every edge, odometry and loop-closure alike (the same gap already noted for per-edge $\Omega_{ij}$ weighting earlier in this doc). Robust loss reweighting is a natural extension a reader could add, not something the accompanying scripts exercise.

@@ -214,15 +214,15 @@ So the error can be distributed:
 ```text
 Before:
 
-A ── B ── C ── D ── E
-│                    │
-└────────────────────┘
+x₀ ── x₁ ── x₂ ── x₃ ── x₄
+│                        │
+└────────────────────────┘
 
 After optimization:
 
-      B --- C --- D
-     /             \
-A ------------------- E
+      x₁ --- x₂ --- x₃
+     /               \
+x₀ --------------------- x₄
 ```
 
 The important point is:
@@ -530,7 +530,7 @@ And that distinction is one of the most useful conceptual foundations for unders
 
 ---
 
-## References
+## 14. References
 
 1. Thrun, S., Burgard, W., & Fox, D. (2005). *Probabilistic Robotics*. MIT Press. — the
    online-SLAM-vs-full-SLAM framing behind §1's and §6's filtering/smoothing distinction.

@@ -89,7 +89,7 @@ The space of positions is basically flat:
 
 ```text
        δp
-   ──────────>
+   ──────────►
  ●────────────●
 old          new
 ```
@@ -173,7 +173,7 @@ $$\mathfrak{so}(3)$$
 So:
 
 > **$SO(3)$ tells you where you are.**
-> **$so(3)$ tells you how you can move from there.**
+> **$\mathfrak{so}(3)$ tells you how you can move from there.**
 
 That's probably the single most useful intuition.
 
@@ -256,6 +256,8 @@ $$\delta\theta^\wedge = \log(R_1^{-1}R_2)$$
 This converts a group element back into a Lie-algebra element — undoing the exponential map:
 
 $$\log(\exp(\delta\theta^\wedge)) = \delta\theta^\wedge$$
+
+(This holds as long as $\|\delta\theta\| < \pi$. The exponential map is periodic per rotation axis, so beyond that range multiple $\delta\theta$'s map to the same $R$, and $\log$ can only recover the one on its principal branch.)
 
 Conceptually:
 
@@ -355,7 +357,7 @@ So one 6D vector represents a tiny change in the entire robot pose:
 └── rotation:     Δrx Δry Δrz
 ```
 
-Just like $so(3)$ had a hat operator turning a 3-vector into a skew-symmetric matrix (section 7), $se(3)$ has its own hat operator turning the 6-vector $\xi$ into a $4\times4$ matrix:
+Just like $\mathfrak{so}(3)$ had a hat operator turning a 3-vector into a skew-symmetric matrix (section 7), $\mathfrak{se}(3)$ has its own hat operator turning the 6-vector $\xi$ into a $4\times4$ matrix:
 
 $$\xi^\wedge = \begin{bmatrix} \phi^\wedge & \rho\\ 
 0 & 0 \end{bmatrix}$$
@@ -398,7 +400,7 @@ $$\xi = \begin{bmatrix} 2\,\text{cm}\\
 0\\
 0.2^\circ \end{bmatrix}$$
 
-It describes a **small motion**, not a complete pose.
+It describes a **small motion**, not a complete pose. (In cm/degrees purely for intuition — plugging into the actual $\exp(\xi^\wedge)$ formula requires consistent units, i.e. meters and radians.)
 
 You then apply that motion to the drone's current pose.
 
@@ -434,15 +436,15 @@ Keep these four things separate:
 | Concept   | Intuition                 |
 | --------- | ------------------------- |
 | $SO(3)$ | All possible 3D rotations |
-| $so(3)$ | Small rotational motions  |
+| $\mathfrak{so}(3)$ | Small rotational motions  |
 | $SE(3)$ | All possible 3D poses     |
-| $se(3)$ | Small 6-DoF pose motions  |
+| $\mathfrak{se}(3)$ | Small 6-DoF pose motions  |
 
 And:
 
-$$\boxed{SO(3) \underset{\log}{\overset{\exp}{\rightleftarrows}} so(3)}$$
+$$\boxed{SO(3) \underset{\log}{\overset{\exp}{\rightleftarrows}} \mathfrak{so}(3)}$$
 
-$$\boxed{SE(3) \underset{\log}{\overset{\exp}{\rightleftarrows}} se(3)}$$
+$$\boxed{SE(3) \underset{\log}{\overset{\exp}{\rightleftarrows}} \mathfrak{se}(3)}$$
 
 ---
 
@@ -474,7 +476,7 @@ It gives optimization algorithms a nice **locally Euclidean 6D space** to work i
 
 ---
 
-## The one-sentence intuition
+## 16. The one-sentence intuition
 
 If you remember only one thing:
 
