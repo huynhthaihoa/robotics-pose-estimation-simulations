@@ -1,5 +1,5 @@
 def main():
-    print("Hello from python-codebase!")
+    print("Hello from robotics-pose-estimation-simulations!")
 
 
 if __name__ == "__main__":
