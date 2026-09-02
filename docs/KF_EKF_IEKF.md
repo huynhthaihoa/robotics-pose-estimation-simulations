@@ -116,11 +116,11 @@ Then it uses this local linear approximation inside the normal Kalman equations.
 
 So:
 
-**KF**
+#### KF
 
 > "My world is linear."
 
-**EKF**
+#### EKF
 
 > "My world is nonlinear, but I'll locally pretend it's linear."
 
