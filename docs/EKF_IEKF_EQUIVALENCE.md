@@ -30,6 +30,8 @@ Two ways to run the measurement update:
   frame**: `r_body = T_pred^-1.act(z_i) - p_i`, `H_body = [I | -skew(p_i)]`
   (fixed — depends only on the object's known geometry, precomputed once).
 
+---
+
 ## 2. Intuitive explanation
 
 Both filters are answering the same question — "how far off is my predicted point cloud from what I actually measured, and what pose correction explains that gap?" — they just *describe* the mismatch in different coordinate systems:
@@ -51,6 +53,8 @@ identical no matter how you rotate it. That's the actual ingredient that
 makes the two filters land on bit-identical corrections every step: rotating
 an isotropic covariance leaves it unchanged (`R @ (sigma^2 I) @ R.T =
 sigma^2 I` for any rotation `R`).
+
+---
 
 ## 3. The algebra (for the curious)
 
@@ -82,6 +86,8 @@ The step `Rbig @ R_diag @ Rbig.T = R_diag` is exactly where isotropy is
 used — it's the only place the argument could fail. `P` and `T_est` update
 identically thereafter, every step, so the two trajectories never diverge.
 
+---
+
 ## 4. Empirical verification
 
 - Printed final/RMS rotation+position error rows are identical between EKF
@@ -93,6 +99,8 @@ identically thereafter, every step, so the two trajectories never diverge.
 - Saved trajectory/error plots show the IEKF line drawn exactly on top of
   the EKF line everywhere (invisible because identical).
 
+---
+
 ## 5. What actually differs between them: speed, not accuracy
 
 `H_body` is a fixed matrix (depends only on the object's known geometry),
@@ -100,6 +108,8 @@ computed once outside the step loop. `H_world` depends on `R_pred`, the
 *current* rotation estimate, so EKF rebuilds it every step. Measured ~30%
 faster per step for IEKF (e.g. 260 vs 369 microseconds/step in one run) at
 identical memory — the entire practical benefit on this benchmark.
+
+---
 
 ## 6. When would EKF and IEKF actually diverge?
 

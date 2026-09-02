@@ -438,7 +438,7 @@ I'd prioritize them roughly like this:
 
 ### Tier 1 — Must understand
 
-**1. Standard KF**
+#### 1. Standard KF
 
 Understand:
 
@@ -450,7 +450,7 @@ Understand:
 
 ↓
 
-**2. EKF**
+#### 2. EKF
 
 Understand:
 
@@ -460,7 +460,7 @@ Understand:
 
 ↓
 
-**3. Error-State EKF / ESKF**
+#### 3. Error-State EKF / ESKF
 
 Understand:
 
@@ -471,7 +471,7 @@ Understand:
 
 ↓
 
-**4. IEKF**
+#### 4. IEKF
 
 Understand:
 
@@ -481,39 +481,45 @@ Understand:
 * left/right invariant errors
 * system symmetries
 
----
-
 ### Tier 2 — Very useful
 
-**5. UKF**
+#### 5. UKF
 
 Good alternative to EKF and useful for understanding nonlinear uncertainty propagation.
 
-**6. RTS smoother**
+↓
+
+#### 6. RTS smoother
 
 Very useful for offline trajectory estimation and SLAM.
 
-**7. Square-root KF**
+↓
+
+#### 7. Square-root KF
 
 Important for numerical stability and large-scale estimation.
 
----
-
 ### Tier 3 — Know the idea
 
-**8. Adaptive KF**
+#### 8. Adaptive KF
 
 When $Q/R$ aren't fixed.
 
-**9. Robust KF**
+↓
+
+#### 9. Robust KF
 
 When measurements contain outliers.
 
-**10. EnKF**
+↓
+
+#### 10. EnKF
 
 Mostly important in high-dimensional scientific applications.
 
-**11. Particle Filter**
+↓
+
+#### 11. Particle Filter
 
 Mostly useful for low-dimensional, multimodal problems like global/Monte Carlo localization; rarely used for full high-dimensional SLAM state estimation.
 

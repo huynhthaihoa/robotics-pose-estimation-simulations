@@ -8,7 +8,7 @@ The key idea is:
 
 Think of it as **"fixing the robot's entire trajectory using a network of geometric constraints."**
 
-
+---
 
 ## 1. First: what is a "pose"?
 
@@ -43,7 +43,7 @@ x₀ ─── x₁ ─── x₂ ─── x₃ ─── x₄
 
 That's the **pose graph**.
 
-
+---
 
 ## 2. Where do the edges come from?
 
@@ -70,7 +70,7 @@ Each edge says:
 
 > **"The relative transformation between these two poses should approximately equal this measurement."**
 
-
+---
 
 ## 3. Why do we need optimization?
 
@@ -106,7 +106,7 @@ After enough motion, small errors accumulate.
 
 This is called **drift**.
 
-
+---
 
 ## 4. The really important event: loop closure
 
@@ -134,7 +134,7 @@ But our accumulated odometry says otherwise.
 
 Now we have a conflict.
 
-
+---
 
 ## 5. Pose-graph optimization resolves the conflict
 
@@ -168,7 +168,7 @@ Instead, it says:
 
 > "Maybe x₁, x₂, x₃ and x₄ are all slightly wrong. Let's distribute the error."
 
-
+---
 
 ## 6. Imagine stretching a rubber band
 
@@ -208,7 +208,7 @@ the beads settle into a configuration that best satisfies all the rubber bands.
 
 That's essentially what optimization is doing.
 
-
+---
 
 ## 7. The mathematics is actually quite intuitive
 
@@ -264,7 +264,7 @@ So in plain English:
 
 One subtlety this formula hides: since every constraint is *relative*, rigidly translating and rotating the entire graph together leaves every $e_{ij}$ completely unchanged — the optimization has a flat direction with zero curvature, called **gauge freedom**. In practice this is fixed by anchoring one pose (usually $T_0$), e.g. by giving it an enormous information weight so the linear system solved at each step has a unique solution instead of infinitely many equally-good ones.
 
-
+---
 
 ## 8. Why is this different from Bundle Adjustment?
 
@@ -300,8 +300,6 @@ Conceptually:
        📷 T₁
 ```
 
-
-
 ### Pose-graph optimization
 
 Usually optimizes:
@@ -328,7 +326,7 @@ So:
 > **PGO asks:**
 > "Do my robot poses form a trajectory consistent with all the relative-pose measurements?"
 
-
+---
 
 ## 9. Another useful analogy: GPS navigation
 
@@ -373,7 +371,7 @@ The trajectory becomes globally consistent.
 
 That's essentially what PGO does.
 
-
+---
 
 ## 10. Why loop closure is so powerful
 
@@ -407,7 +405,7 @@ If I don't, there is accumulated error.
 
 Optimization distributes that error.
 
-
+---
 
 ## 11. What happens in a real SLAM system?
 
@@ -451,7 +449,7 @@ The **back-end** says:
 
 This front-end/back-end separation is very important in SLAM.
 
-
+---
 
 ## 12. One subtle point: PGO doesn't magically know the correct trajectory
 
@@ -492,7 +490,7 @@ so they don't actually exploit per-edge weighting the way $\Omega_{ij}$ above su
 though the loop-closure edge is generated with a different noise level than the odometry edges.
 Per-edge weighting like this is a natural extension, not something the default scripts do.
 
-
+---
 
 ## 13. The most important intuition
 
@@ -531,7 +529,7 @@ And the three questions become:
 
 > **"Given all these images, what camera trajectory and 3D structure best explain the observations?"**
 
-
+---
 
 ## 14. The one-sentence mental model
 
@@ -541,11 +539,11 @@ If you remember only one thing:
 
 And there's a particularly important connection to your SLAM research: **PGO is essentially a sparse nonlinear least-squares problem over poses on $SE(2)$ or $SE(3)$**. Once you understand that, the next natural step is understanding **why we need Lie groups / Lie algebra and how Gauss–Newton or Levenberg–Marquardt actually moves the poses during optimization**.
 
-## Mathematical breakdown of the error formulation and Lie algebra operations
+---
+
+## 15. Mathematical breakdown of the error formulation and Lie algebra operations
 
 Pose-Graph Optimization (PGO) formulates loop closure and drift correction as a non-linear least squares problem on the Special Euclidean Group $\mathrm{SE}(3)$ (or $\mathrm{SE}(2)$ for 2D). Because $\mathrm{SE}(3)$ is a non-Euclidean Lie group rather than a vector space, standard calculus operations like addition and subtraction do not apply directly. Instead, optimization is performed locally on its Lie algebra $\mathfrak{se}(3)$ using tangent spaces.
-
-
 
 ### 1. State Representation and Constraints
 
@@ -560,8 +558,6 @@ The full state vector containing all $N$ pose keyframes is $X = \{T_1, T_2, \dot
 #### Relative Edge Measurements
 
 An edge $e_{ij}$ between nodes $i$ and $j$ represents a relative transformation measurement ${z_{ij} = {\tilde{T}_{ij} \in \mathrm{SE}(3)}}$ (e.g., from ICP scan matching or visual odometry), accompanied by an information matrix ${\Omega_{ij} = {\Sigma_{ij}^{-1} \in \mathbb{R}^{6 \times 6}}}$ representing measurement confidence.
-
-
 
 ### 2. Residual Vector Formulation on $\mathrm{SE}(3)$
 
@@ -645,7 +641,9 @@ $${T_i^{(k+1)} = T_i^{(k)} \cdot \mathrm{Exp}\left(\boldsymbol{\xi}_i^*\right), 
 
 This iteration repeats until convergence (${\Vert{}\boldsymbol{\delta}^*\Vert{} < \epsilon}$ or ${\Vert{}\Delta F\Vert{} < \epsilon}$).
 
-## Robust loss functions used to handle false loop closures
+---
+
+## 16. Robust loss functions used to handle false loop closures
 
 In Pose-Graph Optimization (PGO), standard non-linear least squares relies on an $L_2$ squared-error norm ${F(x) = \sum r_{ij}^\top \Omega_{ij} r_{ij}}$. Under an $L_2$ loss, a single false loop closure (a severe outlier) produces a massive residual $r_{ij}$ whose squared weight pulls the entire trajectory out of shape to satisfy the invalid edge.
 
@@ -660,8 +658,6 @@ $$\min_{X} \sum_{(i,j) \in \mathcal{E}} \rho\left( \sqrt{r_{ij}(X)^\top \Omega_{
 To integrate this into standard Gauss-Newton or Levenberg-Marquardt solvers without modifying the core linear algebra solver, robust kernels use **Iteratively Reweighted Least Squares (IRLS)**. The robust cost is converted into a modified information matrix $\Omega_{ij}^\text{robust} = w(e) \cdot \Omega_{ij}$, where the weight function $w(e)$ is:
 
 $$w(e) = \frac{1}{e} \frac{\partial \rho(e)}{\partial e}$$
-
-
 
 ### 1. Classical M-Estimators
 
@@ -681,8 +677,6 @@ Cauchy uses a logarithmic tail that flattens out faster than Huber:
 $$\rho(e) = \frac{k^2}{2} \ln\left(1 + \frac{e^2}{k^2}\right), \quad w(e) = \frac{1}{1 + \left(\frac{e}{k}\right)^2}$$
 
 * **Behavior:** The weight falls off quadratically ($w(e) \propto \frac{1}{e^2}$), heavily suppressing high-residual edges.
-
-
 
 ### 2. Dynamic Covariance Scaling (DCS)
 
@@ -712,8 +706,6 @@ $$s_{ij} = \min\left(1, \; \frac{2 \Phi}{\Phi + e_{ij}^2}\right)$$
 2. **Outliers ($e_{ij}^2 > \Phi$):** $s_{ij} = \frac{2 \Phi}{\Phi + e_{ij}^2} < 1$. As error $e_{ij}^2$ grows, $s_{ij}^2 \propto \frac{1}{e^4}$, causing the effective weight of the edge to drop rapidly to zero.
 3. **No Extra State Variables:** Unlike original Switchable Constraints, DCS does not add auxiliary optimization variables to the Hessian matrix $H$, preserving graph sparsity without increasing matrix inversion costs.
 
-
-
 ### Comparison of Robust Loss Functions
 
 | Loss Function | Residual Cost Tail $\rho(e)$ | Weight Degeneration $w(e)$ | SLAM False Loop Rejection Power |
@@ -725,8 +717,6 @@ $$s_{ij} = \min\left(1, \; \frac{2 \Phi}{\Phi + e_{ij}^2}\right)$$
 | **Geman-McClure** | Saturation / Bounded | $\propto \frac{1}{(1 + e^2)^2}$ | **Very High** |
 
 Note the distinction in the first column: Geman-McClure's cost $\rho(e)=e^2/(1+e^2)$ genuinely **saturates**, monotonically approaching a constant ($1$) as $e\to\infty$. DCS's effective cost $s_{ij}^2 e_{ij}^2 = \frac{4\Phi^2 e^2}{(\Phi+e^2)^2}$ is stronger than that — for $e^2>\Phi$ it is *decreasing* in $e$ and decays all the way back to $0$ as $e\to\infty$ (differentiate w.r.t. $x=e^2$: $\frac{d}{dx}\frac{4\Phi^2 x}{(\Phi+x)^2} = \frac{4\Phi^2(\Phi-x)}{(\Phi+x)^3} < 0$ for $x>\Phi$). This **redescending** behavior is why DCS suppresses extreme outliers even more aggressively than Geman-McClure, and also why it's every bit as non-convex — the "Graduated Non-Convexity" caveat below applies to it for exactly this reason.
-
-
 
 ### Practical Considerations in Implementation
 

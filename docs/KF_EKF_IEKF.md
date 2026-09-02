@@ -244,8 +244,6 @@ But subtraction doesn't naturally make sense for rotations.
 
 So EKF implementations often represent the rotation using something like Euler angles or a local perturbation and then linearize.
 
----
-
 ### IEKF thinking
 
 Instead of asking:
@@ -327,8 +325,6 @@ You say:
 
 Very easy.
 
----
-
 ### EKF
 
 You realize:
@@ -336,8 +332,6 @@ You realize:
 > "Okay, streets curve. I'll approximate the street as a straight line around my current location."
 
 Then you repeatedly update your approximation.
-
----
 
 ### IEKF
 

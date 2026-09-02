@@ -415,8 +415,6 @@ measurements ──────►│  FILTER  │──────► current 
 
 The past gets **compressed**.
 
----
-
 ### Smoothing / optimization
 
 ```text

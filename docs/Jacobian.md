@@ -340,8 +340,6 @@ Already linear.
 
 No Jacobian is necessary.
 
----
-
 ### EKF
 
 System:
@@ -357,8 +355,6 @@ $$F_k = \left.\frac{\partial f}{\partial x}\right|_{\hat{x}_k}$$
 The Jacobian tells us:
 
 > "How does the nonlinear system behave **locally around my current estimate**?"
-
----
 
 ### IEKF
 
