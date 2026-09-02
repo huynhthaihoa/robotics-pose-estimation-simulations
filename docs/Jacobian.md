@@ -38,7 +38,9 @@ For a function with **one input and one output**, we call this a derivative.
 
 Suppose:
 
-$${\begin{bmatrix}y_1 \\ y_2 \end{bmatrix}=f\left(\begin{bmatrix}x_1 \\x_2\end{bmatrix}\right)}$$
+$${\begin{bmatrix}y_1 \\
+y_2 \end{bmatrix}=f\left(\begin{bmatrix}x_1 \\
+x_2\end{bmatrix}\right)}$$
 
 Now we have:
 
