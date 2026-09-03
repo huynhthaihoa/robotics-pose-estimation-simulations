@@ -1,7 +1,7 @@
 [project]
-name = "python-codebase"
+name = "robotics-pose-estimation-simulations"
 version = "0.1.0"
-description = "Add your description here"
+description = "A collection of simulations for robotics pose estimation."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
