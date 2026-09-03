@@ -219,11 +219,9 @@ A useful mental model is:
 
 1. `images/frontend_backend_1.jpg` 
 
- - OpenAI-hosted CDN: https://images.openai.com/static-rsc-4/ohut01r4hXxy0FBo1CUweMJvMR0DsWr7j5TugX3IqHY3ySm7JWT-MdDMc2CRdBXXvXt09Nx7tRO552QRLOCFQVlHDCt1ECQBAvWQ3EM4vtQVfcF4qvfLvULQutQRozc5gRTmOfctTMUsz0aIsbjamEKvI7-cPBEbDYm31qYmsS9bfmdHnOGJdUH9Z1ke9Gg4?purpose=fullsize
+    - OpenAI-hosted CDN: https://images.openai.com/static-rsc-4/ohut01r4hXxy0FBo1CUweMJvMR0DsWr7j5TugX3IqHY3ySm7JWT-MdDMc2CRdBXXvXt09Nx7tRO552QRLOCFQVlHDCt1ECQBAvWQ3EM4vtQVfcF4qvfLvULQutQRozc5gRTmOfctTMUsz0aIsbjamEKvI7-cPBEbDYm31qYmsS9bfmdHnOGJdUH9Z1ke9Gg4?purpose=fullsize
 
- - Source: Chen, W., Shang, G., Ji, A., Zhou, C., Wang, X., Xu, C.,
-   Li, Z., & Hu, K. (2022). *An Overview on Visual SLAM: From Tradition to Semantic*. Remote
-   Sensing, 14(13), 3010. https://www.mdpi.com/2072-4292/14/13/3010
+    - Source: Chen, W., Shang, G., Ji, A., Zhou, C., Wang, X., Xu, C., Li, Z., & Hu, K. (2022). *An Overview on Visual SLAM: From Tradition to Semantic*. Remote Sensing, 14(13), 3010. https://www.mdpi.com/2072-4292/14/13/3010
 
 2. `images/frontend_backend_2.jpg`
    - OpenAI-hosted CDN: https://images.openai.com/static-rsc-4/fRJK_NxCUU5MX0xfOKYi4rlB7jQ2LD2ipmlYDd1XKT9PVkvHJ59nZQLTRowQ7zaPmc1Tzewjuf_rumoJ-G38d3DTs4WPCbo0OZ9-qlf_3j4KZgVNfSF75TNlFbV_dW2iWXO4jkKbovsJViao1gfCoFPnqfyO3C6b0bOfIQjQ2wl8FJoT509kwELbxeXlDrRy?purpose=fullsize
