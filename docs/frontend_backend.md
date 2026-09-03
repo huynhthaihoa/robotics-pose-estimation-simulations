@@ -149,6 +149,7 @@ In practice, "loop closure" really spans both stages: the front-end / place-reco
 That's why you can think of:
 
 > **Front-end = measurement generation**
+
 > **Back-end = constraint optimization**
 
 ---
@@ -189,6 +190,7 @@ For your research topic, this distinction becomes particularly important because
 A useful mental model is:
 
 > **Front-end = perception**
+
 > **Back-end = estimation/optimization**.
 
 ---
