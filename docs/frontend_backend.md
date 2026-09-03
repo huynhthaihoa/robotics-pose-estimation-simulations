@@ -213,25 +213,26 @@ A useful mental model is:
    https://doi.org/10.1109/TRO.2012.2197158 — the DBoW2 place-recognition method behind §3's
    claim that loop-closure *detection* is a front-end (place-recognition) task.
 
-All four were verified against live search results before being added here (title, authors,
-venue, volume/issue/pages, and DOI cross-checked), rather than cited from memory alone.
-
 ### Image sources
 
-The 4 diagrams above were originally embedded as hotlinks to an OpenAI-hosted CDN
-(`images.openai.com`) and have since been downloaded into [`images/`](images/) for durability.
-The original URLs are recorded here for provenance / cross-check, since that hosting is
-session-scoped and not guaranteed to stay reachable:
+1. `images/frontend_backend_1.jpg` 
 
-1. `images/frontend_backend_1.jpg` — originally
-   `https://images.openai.com/static-rsc-4/ohut01r4hXxy0FBo1CUweMJvMR0DsWr7j5TugX3IqHY3ySm7JWT-MdDMc2CRdBXXvXt09Nx7tRO552QRLOCFQVlHDCt1ECQBAvWQ3EM4vtQVfcF4qvfLvULQutQRozc5gRTmOfctTMUsz0aIsbjamEKvI7-cPBEbDYm31qYmsS9bfmdHnOGJdUH9Z1ke9Gg4?purpose=fullsize`
-2. `images/frontend_backend_2.jpg` — originally
-   `https://images.openai.com/static-rsc-4/fRJK_NxCUU5MX0xfOKYi4rlB7jQ2LD2ipmlYDd1XKT9PVkvHJ59nZQLTRowQ7zaPmc1Tzewjuf_rumoJ-G38d3DTs4WPCbo0OZ9-qlf_3j4KZgVNfSF75TNlFbV_dW2iWXO4jkKbovsJViao1gfCoFPnqfyO3C6b0bOfIQjQ2wl8FJoT509kwELbxeXlDrRy?purpose=fullsize`
-3. `images/frontend_backend_3.jpg` — originally
-   `https://images.openai.com/static-rsc-4/wSKnA5y3wi9kOy12TexCHpO7AOzmAIMkZP2Lubf4gLoaeo0jwVd2DipIoWO0Wl3INhlXLgBCQdyTZDQDPTZ_RdR9zltV7hoG-H7wiRY1Ja5iCt4PRRL85wEpuQhuOsc_bFhxps25YgL-sEyUaeU8fOFDOwQkEP_pkcA_9pUoqBfG5E6skjfrZ_g_hbGjQ_X6?purpose=fullsize`
-4. `images/frontend_backend_4.jpg` — originally
-   `https://images.openai.com/static-rsc-4/1oH3r36n4WxtILN9nlK9PXhy52VKoblXYiuWIZXpb-0MKArZ9UwGQ2MPtIRdMgIlUwEwt2pvxyX0Ri8_bukIvSur2fgcoVvciiGxRn3Dqtd1GXQ63CWXEJIAwd1Ua9qad043n0DNKLTnphMUzjYDmzneWRPZPEI_hn9jf-ij253TMJJs6oZh9k7FQ7KgA59-?purpose=fullsize`
+ - OpenAI-hosted CDN: https://images.openai.com/static-rsc-4/ohut01r4hXxy0FBo1CUweMJvMR0DsWr7j5TugX3IqHY3ySm7JWT-MdDMc2CRdBXXvXt09Nx7tRO552QRLOCFQVlHDCt1ECQBAvWQ3EM4vtQVfcF4qvfLvULQutQRozc5gRTmOfctTMUsz0aIsbjamEKvI7-cPBEbDYm31qYmsS9bfmdHnOGJdUH9Z1ke9Gg4?purpose=fullsize
 
-Downloaded and verified reachable (HTTP 200) on 2026-09-03. No original source/attribution
-metadata was available beyond the URL itself — the exact provenance (e.g. which paper or tool,
-if any, each diagram was drawn from) is unknown and not claimed here.
+ - Source: Chen, W., Shang, G., Ji, A., Zhou, C., Wang, X., Xu, C.,
+   Li, Z., & Hu, K. (2022). *An Overview on Visual SLAM: From Tradition to Semantic*. Remote
+   Sensing, 14(13), 3010. https://www.mdpi.com/2072-4292/14/13/3010
+
+2. `images/frontend_backend_2.jpg`
+   - OpenAI-hosted CDN: https://images.openai.com/static-rsc-4/fRJK_NxCUU5MX0xfOKYi4rlB7jQ2LD2ipmlYDd1XKT9PVkvHJ59nZQLTRowQ7zaPmc1Tzewjuf_rumoJ-G38d3DTs4WPCbo0OZ9-qlf_3j4KZgVNfSF75TNlFbV_dW2iWXO4jkKbovsJViao1gfCoFPnqfyO3C6b0bOfIQjQ2wl8FJoT509kwELbxeXlDrRy?purpose=fullsize
+   - Source: Chen, W., Zhou, C., Shang, G., Wang, X., Li, Z., Xu, C.,
+   & Hu, K. (2022). *SLAM Overview: From Single Sensor to Heterogeneous Fusion*. Remote Sensing,
+   14(23), 6033. https://www.mdpi.com/2072-4292/14/23/6033
+
+3. `images/frontend_backend_3.jpg`
+   - OpenAI-hosted CDN: https://images.openai.com/static-rsc-4/wSKnA5y3wi9kOy12TexCHpO7AOzmAIMkZP2Lubf4gLoaeo0jwVd2DipIoWO0Wl3INhlXLgBCQdyTZDQDPTZ_RdR9zltV7hoG-H7wiRY1Ja5iCt4PRRL85wEpuQhuOsc_bFhxps25YgL-sEyUaeU8fOFDOwQkEP_pkcA_9pUoqBfG5E6skjfrZ_g_hbGjQ_X6?purpose=fullsize`
+4. `images/frontend_backend_4.jpg`
+   - OpenAI-hosted CDN: https://images.openai.com/static-rsc-4/1oH3r36n4WxtILN9nlK9PXhy52VKoblXYiuWIZXpb-0MKArZ9UwGQ2MPtIRdMgIlUwEwt2pvxyX0Ri8_bukIvSur2fgcoVvciiGxRn3Dqtd1GXQ63CWXEJIAwd1Ua9qad043n0DNKLTnphMUzjYDmzneWRPZPEI_hn9jf-ij253TMJJs6oZh9k7FQ7KgA59-?purpose=fullsize
+   - Source: Figure 1 of Deep Pose Graph-Matching-Based Loop Closure
+   Detection for Semantic Visual SLAM (ResearchGate publication ID 363772572).
+   https://www.researchgate.net/figure/Visual-simultaneous-localization-and-mapping_fig1_363772572
