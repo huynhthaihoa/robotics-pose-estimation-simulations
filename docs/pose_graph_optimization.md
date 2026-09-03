@@ -575,7 +575,17 @@ Because optimization requires a 6-dimensional Euclidean vector space, the matrix
 
 $${r_{ij}(X) = \left( \log \left( \tilde{T}_{ij}^{-1} T_i^{-1} T_j \right) \right)^\vee \in \mathbb{R}^6}$$
 
-The residual vector ${r_{ij} = \left[ \boldsymbol{\rho}_{ij}^\top \theta_{ij}^\top \right]^\top}$ captures 3D translational error ${\boldsymbol{\rho}_{ij}}$ and rotational error ${\theta_{ij}}$.
+The residual vector:
+
+$${r_{ij} = \left[ \boldsymbol{\rho}_{ij}^\top \theta_{ij}^\top \right]^\top}$$
+
+captures 3D translational error: 
+
+$${\boldsymbol{\rho}_{ij}}$$
+
+and rotational error: 
+
+$${\theta_{ij}}$$
 
 ### 3. Objective Function
 
