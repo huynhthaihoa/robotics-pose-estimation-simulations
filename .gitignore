@@ -1,11 +1,11 @@
 *.dat
 __pycache__
-*.jpg
-*.png
-*.tiff
-*.mp4
-*.MOV
-*webm
+# *.jpg
+# *.png
+# *.tiff
+# *.mp4
+# *.MOV
+# *webm
 *.xml
 *.rar
 omnicalib
