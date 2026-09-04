@@ -93,9 +93,7 @@ It essentially says:
 
 This makes filtering **naturally online and computationally efficient**.
 
----
-
-## 3. The big limitation of filtering
+### The big limitation of filtering
 
 Here's where SLAM becomes interesting.
 
@@ -141,7 +139,7 @@ A pure filtering mindset is uncomfortable with this because it has already compr
 
 ---
 
-## 4. Optimization: keep the history
+## 3. Optimization: keep the history
 
 Optimization-based SLAM takes a different approach.
 
@@ -181,9 +179,7 @@ where:
 
 This is the fundamental idea behind **bundle adjustment**, **pose-graph optimization**, and many modern SLAM systems.
 
----
-
-## 5. Why optimization is powerful
+### Why optimization is powerful
 
 Suppose we have:
 
@@ -234,7 +230,7 @@ That's a huge conceptual difference.
 
 ---
 
-## 6. Smoothing: optimization with a probabilistic interpretation
+## 4. Smoothing: optimization with a probabilistic interpretation
 
 **Smoothing** is closely related to optimization, but conceptually it is useful to distinguish them.
 
@@ -276,7 +272,7 @@ Optimization is often used as the computational mechanism for obtaining this joi
 
 ---
 
-## 7. A very intuitive analogy
+## 5. A very intuitive analogy
 
 Imagine you're reconstructing a person's route through a city.
 
@@ -328,7 +324,7 @@ That's smoothing.
 
 ---
 
-## 8. The computational difference
+## 6. The computational difference
 
 This gives us a useful trade-off:
 
@@ -356,7 +352,7 @@ simply doesn't scale to large maps the way sparse smoothing does.
 
 ---
 
-## 9. This is where factor graphs fit
+## 7. This is where factor graphs fit
 
 A **factor graph** is an excellent mental bridge between the two worlds.
 
@@ -399,7 +395,7 @@ This is why factor graphs are so common in modern SLAM.
 
 ---
 
-## 10. Filtering vs smoothing in one picture
+## 8. Filtering vs smoothing in one picture
 
 Think of the information flow:
 
@@ -440,7 +436,7 @@ The past is **kept around so it can be reconsidered**.
 
 ---
 
-## 11. One subtle but very important point
+## 9. One subtle but very important point
 
 It's tempting to say:
 
@@ -458,7 +454,7 @@ This distinction becomes especially important when studying **VIO, SLAM, and sta
 
 ---
 
-## 12. Where the modern systems fit
+## 10. Where the modern systems fit
 
 A rough map is:
 
@@ -492,7 +488,7 @@ Examples you'll encounter:
 
 ---
 
-## 13. And this matters a lot for your PhD topic
+## 11. And this matters a lot for your PhD topic
 
 For your planned work on **SLAM + state estimation for resource-constrained robots with discontinuous/hybrid motion**, this distinction is particularly important.
 
@@ -530,7 +526,7 @@ And that distinction is one of the most useful conceptual foundations for unders
 
 ---
 
-## 14. References
+## 12. References
 
 1. Thrun, S., Burgard, W., & Fox, D. (2005). *Probabilistic Robotics*. MIT Press. — the
    online-SLAM-vs-full-SLAM framing behind §1's and §6's filtering/smoothing distinction.
