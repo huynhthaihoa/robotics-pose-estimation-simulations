@@ -131,11 +131,7 @@ $$
 
 Then compare:
 
-$$
-\text{error}
-=
-Z_{ij}^{-1}\hat Z_{ij}
-$$
+$$\text{error}=Z_{ij}^{-1}\hat Z_{ij}$$
 
 Conceptually:
 
@@ -355,33 +351,21 @@ Factor-graph optimization is usually a **nonlinear least-squares problem**.
 
 We have:
 
-$$
-\min_X \sum_i \|e_i(X)\|^2
-$$
+$$\min_X \sum_i \|e_i(X)\|^2$$
 
 But the errors are nonlinear because poses involve rotations and transformations.
 
 So we linearize:
 
-$$
-e(X+\Delta X)
-\approx
-e(X)+J\Delta X
-$$
+$$e(X+\Delta X)\approx e(X)+J\Delta X$$
 
 Then **[Gauss–Newton](gauss_newton.md)** solves:
 
-$$
-J^T W J\Delta X
-=
--J^T W e
-$$
+$$J^T W J\Delta X =-J^T W e$$
 
 and updates:
 
-$$
-X \leftarrow X \oplus \Delta X
-$$
+$$X \leftarrow X \oplus\Delta X$$
 
 For poses, that $\oplus$ is often implemented using **[Lie algebra](../foundations/lie_algebra.md) / SE(3)**.
 
@@ -537,7 +521,7 @@ That is the conceptual bridge connecting essentially all the SLAM topics you've 
 
 ### Image sources
 
-1. `images/factor_graph_1.jpg` — originally cited as https://ieeexplore.ieee.org/document/910572
+<!-- 1. `images/factor_graph_1.jpg` — originally cited as https://ieeexplore.ieee.org/document/910572
    (IEEE document 910572, i.e., Reference 1 above). **This citation is incorrect.** The paper was
    downloaded in full and every figure inspected; none of them show robot poses, landmarks,
    "Odometry measurement"/"Landmark measurement" labels, or the "Bipartite graph with variable
@@ -548,7 +532,7 @@ That is the conceptual bridge connecting essentially all the SLAM topics you've 
    measurement" phrasing with toy robot/furniture photos) was checked and did not match either —
    their version uses photographs, not the abstract $x_0,\dots,x_n$ / $l_1, l_2$ circles seen
    here. The true source of this image is **unidentified**; do not cite IEEE document 910572 for
-   it.
+   it. -->
 2. `images/factor_graph_2.jpg` — originally cited as
    https://engcang.github.io/gtsam_tutorial.html. **Confirmed**: this is a pixel-for-pixel match
    for the second pose-graph figure on that page (image file
