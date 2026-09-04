@@ -448,7 +448,7 @@ $$(J^TJ+\lambda D)\Delta x=-J^Te$$
 
 where $D$ might be:
 
-$$D=\operatorname{diag}(J^TJ)$$
+$$D=\text{diag}(J^TJ)$$
 
 Different implementations use slightly different damping schemes.
 
@@ -477,12 +477,12 @@ You can now build a nice mental hierarchy:
         │                   │
    Gauss-Newton             LM
         │                   │
-   Fast / local        Adaptive damping
+   Fast/local        Adaptive damping
                             │
                  ┌──────────┴──────────┐
                  ↓                     ↓
           Gradient-descent-like    GN-like
-             when λ large          when λ small
+             when λ is large          when λ is small
 ```
 
 And then:
