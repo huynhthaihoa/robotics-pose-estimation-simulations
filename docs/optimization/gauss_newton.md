@@ -66,7 +66,7 @@ We can approximate the residual using a first-order Taylor expansion:
 
 $$r(x+\Delta x)\approx r(x) + J\Delta x$$
 
-where $J$ is the **[Jacobian](Jacobian.md)**.
+where $J$ is the **[Jacobian](../foundations/jacobian.md)**.
 
 This is extremely important.
 
@@ -395,4 +395,4 @@ Or even more intuitively:
 
 > **"I'm going to pretend the world is linear around where I currently am, take the best step according to that approximation, and then update my approximation."**
 
-That idea is the bridge from **[Jacobian](Jacobian.md) → Gauss-Newton → [bundle adjustment](bundle_adjustment.md) → [pose-graph optimization](pose_graph_optimization.md) → SLAM**.
+That idea is the bridge from **[Jacobian](../foundations/jacobian.md) → Gauss-Newton → [bundle adjustment](bundle_adjustment.md) → [pose-graph optimization](pose_graph_optimization.md) → SLAM**.

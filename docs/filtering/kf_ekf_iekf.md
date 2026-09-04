@@ -399,7 +399,7 @@ It's better to think:
 In fact, an IEKF can sometimes have **better convergence and consistency properties** than a conventional EKF because the linearization is aligned with the system's inherent symmetries.
 
 **A concrete data point**: in this repo's own point-cloud pose-tracking benchmark
-([use_numpy/pointcloud_pose_tracking.py](../use_numpy/pointcloud_pose_tracking.py), [use_manif/pointcloud_pose_tracking.py](../use_manif/pointcloud_pose_tracking.py), EKF and IEKF
+([use_numpy/pointcloud_pose_tracking.py](../../use_numpy/pointcloud_pose_tracking.py), [use_manif/pointcloud_pose_tracking.py](../../use_manif/pointcloud_pose_tracking.py), EKF and IEKF
 were verified to produce **exactly identical** corrections under isotropic point-noise covariance —
 proven algebraically (the body-frame and world-frame residual/Jacobian pairs differ only by a
 per-point rotation that cancels exactly out of the Kalman gain) and confirmed numerically to

@@ -246,7 +246,7 @@ uv run python use_numpy/pose_graph.py --side-length 2.0 --pos-noise-std 0.05 --r
 `n_landmarks` 3D landmarks, each looking inward via a look-at rotation. A
 camera field-of-view cutoff means not every camera observes every landmark
 (landmarks seen by fewer than `--min-observations` cameras are dropped as
-not triangulable) — this is `docs/bundle_adjustment.md`'s observed set
+not triangulable) — this is `docs/optimization/bundle_adjustment.md`'s observed set
 ${\mathcal{O}}$, a real strict subset of all camera-landmark pairs, not "every
 camera sees everything." Every camera pose and every landmark is perturbed
 from ground truth to build a noisy initial guess, then three solvers are
