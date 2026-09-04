@@ -514,7 +514,7 @@ That's why **GN, LM, factor graphs, and iSAM** fit together so naturally in mode
 2. Marquardt, D. W. (1963). *An Algorithm for Least-Squares Estimation of Nonlinear Parameters*.
    Journal of the Society for Industrial and Applied Mathematics, 11(2), 431–441.
    https://doi.org/10.1137/0111030 — the scale-invariant diagonal-damping variant
-   $D=\operatorname{diag}(J^TJ)$ behind §12.
+   $D=\text{diag}(J^TJ)$ behind §12.
 3. Triggs, B., McLauchlan, P. F., Hartley, R. I., & Fitzgibbon, A. W. (2000). *Bundle Adjustment
    — A Modern Synthesis*. In Vision Algorithms: Theory and Practice (LNCS vol. 1883, pp.
    298–372). Springer. https://doi.org/10.1007/3-540-44480-7_21 — the reprojection-error /
