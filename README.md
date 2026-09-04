@@ -1,9 +1,8 @@
-# Python Codebase — Robotics Pose Estimation Simulations
+# State Estimation Simulations
 
 ## Introduction
 
-A collection of from-scratch simulations exploring pose/state estimation on
-manifolds: 
+A collection of from-scratch simulations exploring pose/state estimation on manifolds: 
  - How orientation and pose should be integrated and corrected on $SO(3)$ / $SE(3)$ rather than treated as flat vectors
  - How a **prior** (a motion model driven by noisy control/odometry inputs) can be fused with **measurements** either **recursively** (Kalman filtering) or in **batch** (Gauss-Newton optimization).
 
@@ -12,8 +11,16 @@ split into sibling directories with matching filenames:
 - [use_numpy/](use_numpy/): skew-symmetric matrices, $Exp$ / $Log$ maps, and Jacobians written out by hand (Rodrigues' formula, the $SE(3)$ exponential/logarithm, the analytical inverse right Jacobian), shared across scripts via [use_numpy/lie_utils.py](use_numpy/lie_utils.py).
 - [use_manif/](use_manif/): the same math delegated to the [`manif`](https://github.com/artivis/manif) Lie-theory library's Python bindings (`T.rplus`, `T.rminus`, `T.act`, all with analytical Jacobians returned as out-parameters), so no manifold formula is hand-rolled.
 
-Each `use_manif/<name>.py` is the manifpy counterpart of `use_numpy/<name>.py`
-of the same filename.
+Each `use_manif/<name>.py` is the manifpy counterpart of `use_numpy/<name>.py` of the same filename.
+
+## Documentation
+
+[docs/](docs/) has the conceptual write-ups behind these simulations — math foundations
+(Jacobian, Lie algebra, quaternions), the Kalman-filter family (KF/EKF/IEKF and variants), and
+the factor-graph/smoothing family (NLS, Gauss-Newton, Levenberg-Marquardt, factor graphs,
+pose-graph optimization, bundle adjustment, iSAM). Start at [docs/README.md](docs/README.md) for
+the full index, or [docs/frontend_backend.md](docs/frontend_backend.md) /
+[docs/filtering_smoothing.md](docs/filtering_smoothing.md) for the two entry-point overviews.
 
 ## Library structure
 
@@ -23,16 +30,16 @@ of the same filename.
   Lie-group helpers (`skew`, `rotation_geodesic_error`, `so3_exp`,
   `so3_right_jacobian`, `se3_exp`, `se3_log`, `se3_inv`, `se3_adjoint`,
   `compute_so3_inv_right_jacobian`, `compute_se3_inv_right_jacobian`,
-  `se3_right_jacobian`), imported by `imu_integration_comparison.py`,
-  `imu_preintegration.py`, `pointcloud_pose_tracking.py`, and `pose_graph.py`.
-  `robot_imu_simulation.py` still keeps its own inline copies of the
-  skew/Jacobian helpers and hasn't been migrated to import from here yet.
+  `se3_right_jacobian`), imported by every other script in this directory
+  (`imu_integration_comparison.py`, `robot_imu_simulation.py`,
+  `imu_preintegration.py`, `pointcloud_pose_tracking.py`, `pose_graph.py`,
+  and `bundle_adjustment.py`) — none of them keep their own inline copies of
+  the skew/Jacobian helpers anymore.
 - [imu_integration_comparison.py](use_numpy/imu_integration_comparison.py):
   naive Euler-angle vs. $SO(3)$ exp-map orientation integration.
 - [robot_imu_simulation.py](use_numpy/robot_imu_simulation.py): high-rate
   IMU propagation + a low-rate Gauss-Newton pose correction (à la a GPS fix),
-  with the full $SE(3)$ $Exp$ / $Log$ / inverse-right-Jacobian math written from
-  scratch inline.
+  reusing `lie_utils.py`'s $SE(3)$ $Exp$ / $Log$ / inverse-right-Jacobian math.
 - [imu_preintegration.py](use_numpy/imu_preintegration.py): IMU
   pre-integration — compresses a burst of high-frequency IMU samples into
   one relative measurement plus first-order bias Jacobians, then shows an instant Taylor-expansion correction when the bias estimate changes, without re-integrating.
@@ -96,7 +103,7 @@ of the same filename.
   [use_numpy/](use_numpy/) scripts don't need this — only the
   [use_manif/](use_manif/) scripts do.
 - Then sync dependencies: `uv sync`
-- Run any script with `uv run` from the `python-codebase` directory, e.g.:
+- Run any script with `uv run` from this repository's root directory, e.g.:
   `uv run python use_numpy/imu_integration_comparison.py`
 
 ## Usage

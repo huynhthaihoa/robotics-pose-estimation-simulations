@@ -1,5 +1,5 @@
 def main():
-    print("Hello from robotics-pose-estimation-simulations!")
+    print("Hello from state-estimation-simulations!")
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 [project]
-name = "robotics-pose-estimation-simulations"
+name = "state-estimation-simulations"
 version = "0.1.0"
-description = "A collection of simulations for robotics pose estimation."
+description = "A collection of simulations for state estimation."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
