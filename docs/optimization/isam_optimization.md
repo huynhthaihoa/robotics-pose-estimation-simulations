@@ -478,6 +478,3 @@ And **iSAM2** takes this further by using a **Bayes tree** to efficiently identi
 4. Dellaert, F., & Kaess, M. (2017). *Factor Graphs for Robot Perception*. Foundations and Trends
    in Robotics, 6(1–2), 1–139. https://doi.org/10.1561/2300000043 — general reference for the
    factor-graph formulation underlying §3 and §11.
-
-All four were verified against live search results before being added here (title, authors,
-venue, volume/issue/pages, and DOI cross-checked), rather than cited from memory alone.
