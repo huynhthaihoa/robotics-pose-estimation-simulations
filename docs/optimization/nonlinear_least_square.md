@@ -25,8 +25,7 @@ $$y = ax+b$$
 
 The unknowns are:
 
-$$x=\begin{bmatrix}a\\
-b\end{bmatrix}$$
+$$x=\begin{bmatrix}a \\ b\end{bmatrix}$$
 
 For each measurement, there is an error:
 
@@ -215,9 +214,7 @@ where $f(x)$ is nonlinear.
 
 For example:
 
-$$f(x)=\begin{bmatrix}\sin x\\
-e^x\\
-x^2\end{bmatrix}$$
+$$f(x)=\begin{bmatrix}\sin x\\ e^x\\ x^2\end{bmatrix}$$
 
 There's generally no simple closed-form solution for:
 
