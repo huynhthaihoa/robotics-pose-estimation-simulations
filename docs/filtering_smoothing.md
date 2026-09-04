@@ -33,6 +33,7 @@ The fundamental difference is:
 This leads to a very useful mental model:
 
 > **Filtering = "What do I believe right now?"**
+
 > **Smoothing = "Given everything I've seen, what do I now believe my whole trajectory was?"**
 
 ---
@@ -522,6 +523,7 @@ That can become very interesting when your motion model is **hybrid/discontinuou
 So, if you remember only one thing:
 
 > **Filtering is like continuously updating your belief about where you are.**
+
 > **Smoothing/optimization is like periodically reopening the entire notebook and rewriting your past trajectory so that everything you've observed fits together as consistently as possible.**
 
 And that distinction is one of the most useful conceptual foundations for understanding **EKF-SLAM → factor graphs → sliding-window VIO → pose-graph SLAM → incremental smoothing**.

@@ -491,10 +491,15 @@ X0 ●──────●──────●──────● X3
 And this gives you a very useful hierarchy:
 
 > **SLAM** = estimation problem
+
 > **Factor graph** = representation of that estimation problem
+
 > **Factors** = sensor/measurement constraints
+
 > **Nonlinear least squares** = mathematical formulation
+
 > **Gauss–Newton / LM** = optimization method
+
 > **Lie algebra** = convenient way to optimize poses on SE(3)
 
 That is the conceptual bridge connecting essentially all the SLAM topics you've been asking about recently.

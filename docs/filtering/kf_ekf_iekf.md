@@ -26,6 +26,7 @@ The Kalman Filter asks:
 If GPS is noisy, you might say:
 
 > Prediction: 70%
+
 > GPS: 30%
 
 So the result might be around `14.7 m`.
@@ -102,6 +103,7 @@ Imagine a curved road:
 The EKF essentially says:
 
 > "I don't need to understand the whole curve.
+
 > I just need to approximate the curve around where I currently am."
 
 Mathematically, if: $x_{k+1}=f(x_k,u_k)+w$
@@ -393,7 +395,9 @@ That's not quite right.
 It's better to think:
 
 > **KF → different mathematical assumptions**
+
 > **EKF → generic nonlinear approximation**
+
 > **IEKF → geometry-aware nonlinear approximation**
 
 In fact, an IEKF can sometimes have **better convergence and consistency properties** than a conventional EKF because the linearization is aligned with the system's inherent symmetries.

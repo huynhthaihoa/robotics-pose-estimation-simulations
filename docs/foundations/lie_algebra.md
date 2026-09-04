@@ -173,6 +173,7 @@ $$\mathfrak{so}(3)$$
 So:
 
 > **$SO(3)$ tells you where you are.**
+
 > **$\mathfrak{so}(3)$ tells you how you can move from there.**
 
 That's probably the single most useful intuition.

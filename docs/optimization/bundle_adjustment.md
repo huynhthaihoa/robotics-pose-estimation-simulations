@@ -391,6 +391,7 @@ using **image reprojection errors**.
 So a useful mental distinction is:
 
 > **Pose graph:** "Make the poses geometrically consistent."
+
 > **Bundle adjustment:** "Make the entire camera + 3D structure explain the images."
 
 ---
