@@ -15,7 +15,7 @@ Conceptual/pedagogical notes on the state-estimation and SLAM ideas behind the c
 ## [`foundations/`](foundations/) - Reusable math, not SLAM-specific
 
 - [jacobian.md](foundations/jacobian.md): what a Jacobian means and why linearization needs one.
-- [lie_algebra.md](foundations/lie_algebra.md): Lie groups/algebras for optimizing on SE(3) without
+- [lie_algebra.md](foundations/lie_algebra.md): Lie groups/algebras for optimizing on $SE(3)$ without
   singularities.
 - [quaternion.md](foundations/quaternion.md): quaternions as a 3D-orientation representation.
 
